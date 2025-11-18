@@ -1013,7 +1013,13 @@
                 elevation: '400-500 m',
                 intensity: 'C2-C3, intervali C4',
                 type: 'Asfalt/makadam mix',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 28000, elevation: 450 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Rovte start
+                    [45.9280, 14.0980],  // Towards Logatec
+                    [45.9156, 14.0783],  // Logatec area
+                    [45.9100, 14.1100],  // Return route
+                    [45.9368, 14.1245]   // Back to Rovte
+                ],
                 description: 'Glavni testni krog za merjenje napredka'
             },
             2: {
@@ -1022,7 +1028,13 @@
                 elevation: '450-550 m',
                 intensity: 'C2-C3',
                 type: 'Mix asfalt/gozdne ceste',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 25000, elevation: 500 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Rovte/Zavrtec start
+                    [45.9500, 14.1400],  // Žibrše area
+                    [45.9600, 14.1200],  // Hotedršica
+                    [45.9450, 14.1100],  // Loop back
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Tehnično zahtevna pot z vzponi'
             },
             3: {
@@ -1031,7 +1043,12 @@
                 elevation: '300-400 m',
                 intensity: 'C2-C3 + tehnika',
                 type: 'Single track, gozdne ceste',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 18000, elevation: 350 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Start
+                    [45.9300, 14.1350],  // Trail section
+                    [45.9400, 14.1450],  // Loop
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Fokus na tehnične veščine'
             },
             4: {
@@ -1040,7 +1057,12 @@
                 elevation: '350-450 m',
                 intensity: 'C2 + intervali C4-C5',
                 type: 'Mix terrain',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 20000, elevation: 400 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Zavrtec start
+                    [45.9250, 14.1350],  // Climb section
+                    [45.9200, 14.1200],  // Interval section
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Strukturirani intervali za moč'
             },
             5: {
@@ -1049,7 +1071,13 @@
                 elevation: '400-600 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, makadam',
-                coords: { lat: 46.0833, lon: 14.4664, distance: 30000, elevation: 500 },
+                waypoints: [
+                    [46.0833, 14.4664],  // Šmarna Gora base
+                    [46.0900, 14.4550],  // Ascent
+                    [46.0950, 14.4700],  // Loop around
+                    [46.0800, 14.4800],  // Return path
+                    [46.0833, 14.4664]   // Back to start
+                ],
                 description: 'Priljubljena vikend tura (Ljubljana 40-50 km)'
             },
             6: {
@@ -1058,7 +1086,13 @@
                 elevation: '500-700 m',
                 intensity: 'C2',
                 type: 'Gozdne ceste',
-                coords: { lat: 46.0600, lon: 14.3000, distance: 35000, elevation: 600 },
+                waypoints: [
+                    [46.0600, 14.3000],  // Polhov Gradec
+                    [46.0700, 14.2800],  // Trail through hills
+                    [46.0800, 14.3100],  // Scenic loop
+                    [46.0650, 14.3200],  // Return
+                    [46.0600, 14.3000]   // Back
+                ],
                 description: 'Lahka tura v čudoviti okolici'
             },
             7: {
@@ -1067,7 +1101,12 @@
                 elevation: '450-550 m',
                 intensity: 'C1-C2',
                 type: 'Mix asfalt/makadam',
-                coords: { lat: 46.0000, lon: 13.9833, distance: 32000, elevation: 500 },
+                waypoints: [
+                    [46.0000, 13.9833],  // Idrija center
+                    [45.9850, 13.9700],  // Spodnja Idrija
+                    [45.9900, 14.0000],  // Loop
+                    [46.0000, 13.9833]   // Return
+                ],
                 description: 'Raziskovanje Idrije'
             },
             8: {
@@ -1076,7 +1115,12 @@
                 elevation: '300-400 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, široki single tracki',
-                coords: { lat: 45.7764, lon: 14.2139, distance: 25000, elevation: 350 },
+                waypoints: [
+                    [45.7764, 14.2139],  // Postojna area
+                    [45.7850, 14.2000],  // Trail section
+                    [45.7700, 14.2250],  // Loop
+                    [45.7764, 14.2139]   // Return
+                ],
                 description: 'Družinska tura'
             },
             9: {
@@ -1085,7 +1129,13 @@
                 elevation: '100-200 m',
                 intensity: 'C1-C2',
                 type: 'Makadam, asfalt (ravnina)',
-                coords: { lat: 45.9500, lon: 14.4500, distance: 40000, elevation: 150 },
+                waypoints: [
+                    [45.9500, 14.4500],  // Barje start
+                    [45.9300, 14.4300],  // South
+                    [45.9200, 14.4600],  // East loop
+                    [45.9400, 14.4700],  // North
+                    [45.9500, 14.4500]   // Return
+                ],
                 description: 'Dolga lahka tura za vzdržljivost'
             },
             10: {
@@ -1094,7 +1144,12 @@
                 elevation: '250-350 m',
                 intensity: 'C2',
                 type: 'Asfalt in gozdne ceste',
-                coords: { lat: 45.9700, lon: 14.3000, distance: 28000, elevation: 300 },
+                waypoints: [
+                    [45.9700, 14.3000],  // Bevke
+                    [45.9550, 14.3150],  // Borovnica
+                    [45.9650, 14.2950],  // Vrhnika
+                    [45.9700, 14.3000]   // Return
+                ],
                 description: 'Lokalna tura blizu doma'
             }
         };
@@ -1190,34 +1245,62 @@
             const route = ROUTES_DATA[routeId];
             if (!route) return '#';
 
-            const { lat, lon, distance, elevation } = route.coords;
+            const waypoints = route.waypoints || [];
 
             switch(appType) {
                 case 'komoot':
-                    return {
-                        app: `komoot://plan?startLat=${lat}&startLon=${lon}&sport=mtb&distance=${distance}`,
-                        web: `https://www.komoot.com/plan/@${lat},${lon}?sport=mtb&distance=${distance}&elevation=${elevation}`
-                    };
+                    if (waypoints.length > 0) {
+                        // Build coordinate list for Komoot
+                        const coordList = waypoints.map(wp => `${wp[0]},${wp[1]}`).join(',');
+                        // Calculate center point for map view
+                        const centerLat = waypoints[0][0];
+                        const centerLon = waypoints[0][1];
+
+                        return {
+                            app: `komoot://route?coordinates=${coordList}&sport=mtbbike`,
+                            web: `https://www.komoot.com/plan/coordinates/${coordList}@Sport`
+                        };
+                    }
+                    return { app: '#', web: '#' };
+
                 case 'strava':
-                    return {
-                        app: `strava://routes/new?lat=${lat}&lon=${lon}`,
-                        web: `https://www.strava.com/routes/new?lat=${lat}&lng=${lon}`
-                    };
+                    if (waypoints.length > 0) {
+                        const lat = waypoints[0][0];
+                        const lon = waypoints[0][1];
+                        return {
+                            app: `strava://routes/new?lat=${lat}&lon=${lon}`,
+                            web: `https://www.strava.com/routes/new?lat=${lat}&lng=${lon}`
+                        };
+                    }
+                    return { app: '#', web: '#' };
+
                 case 'ridewithgps':
-                    return {
-                        app: `rwgps://`,
-                        web: `https://ridewithgps.com/routes/new?start_lat=${lat}&start_lng=${lon}`
-                    };
+                    if (waypoints.length > 0) {
+                        const lat = waypoints[0][0];
+                        const lon = waypoints[0][1];
+                        return {
+                            app: `rwgps://`,
+                            web: `https://ridewithgps.com/routes/new?start_lat=${lat}&start_lng=${lon}`
+                        };
+                    }
+                    return { app: '#', web: '#' };
+
                 case 'garmin':
                     return {
                         app: `garmin-connect://`,
                         web: `https://connect.garmin.com/modern/course/create`
                     };
+
                 default:
-                    return {
-                        app: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,
-                        web: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-                    };
+                    if (waypoints.length > 0) {
+                        const lat = waypoints[0][0];
+                        const lon = waypoints[0][1];
+                        return {
+                            app: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,
+                            web: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
+                        };
+                    }
+                    return { app: '#', web: '#' };
             }
         }
 
