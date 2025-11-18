@@ -969,9 +969,8 @@
         // ========================================
         // SUPABASE CONFIGURATION
         // ========================================
-        // TODO: Replace these with your actual Supabase credentials
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const SUPABASE_URL = 'https://pxmrnpfbuxicgdmlcakh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bXJucGZidXhpY2dkbWxjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NTg4NjQsImV4cCI6MjA3OTAzNDg2NH0.rd2hITsB46zsQGNqWEvzSnFzjSuOfGp2M50C7eXjwEE';
 
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -982,6 +981,7 @@
         let currentUser = null;
         let userProfile = null;
         let trainingLogs = [];
+        let customEvents = []; // Custom training events (add/delete)
         let currentDate = new Date(2025, 10, 18);
         let currentView = 'calendar';
 
@@ -1003,7 +1003,121 @@
             '2025-11-29': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek/hoja', duration: '30-40 min', intensity: 'C1' },
             '2025-11-30': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Idrija Loop', duration: '2-2.5h', intensity: 'C2', route: 7 },
             '2025-12-01': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod z družino', duration: '60-90 min', intensity: 'C1' },
-            // Continue with more dates...
+
+            // Week 3 (Dec 2-8)
+            '2025-12-02': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-03': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte MTB Trails', duration: '90-120 min', intensity: 'C2-C4', route: 3, intervals: '6x (2 min C4 + 2 min C2)' },
+            '2025-12-04': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-05': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Sweet Spot Training', duration: '45-60 min', intensity: 'C3', workout: 7 },
+            '2025-12-06': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2025-12-07': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Postojnska Vrata', duration: '2-2.5h', intensity: 'C1-C2', route: 8 },
+            '2025-12-08': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 4 (Dec 9-15)
+            '2025-12-09': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-10': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Zavrtec Intervali', duration: '90-120 min', intensity: 'C2-C4', route: 4, intervals: '5x (3 min C4 + 3 min C2)' },
+            '2025-12-11': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-12': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2025-12-13': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek', duration: '30-40 min', intensity: 'C1' },
+            '2025-12-14': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Bevke-Borovnica-Vrhnika', duration: '2-3h', intensity: 'C1-C2', route: 10 },
+            '2025-12-15': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 5 (Dec 16-22)
+            '2025-12-16': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-17': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte-Logatec Loop', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: '4x (3 min C4 + 3 min C2)' },
+            '2025-12-18': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-19': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Tempo Intervals', duration: '45-60 min', intensity: 'C3', workout: 8 },
+            '2025-12-20': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2025-12-21': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Polhograjski Dolomiti', duration: '2.5-3h', intensity: 'C1-C2', route: 6 },
+            '2025-12-22': { type: 'rest', name: 'Aktivni počitek', description: 'Družinska aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 6 (Dec 23-29) - Prazniki
+            '2025-12-23': { type: 'rest', name: 'Prazniki - Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2025-12-24': { type: 'rest', name: 'Božič - Aktivni počitek', description: 'Lahek sprehod', duration: '60 min', intensity: 'C1' },
+            '2025-12-25': { type: 'rest', name: 'Božič - Počitek', description: 'Družina', duration: '-', intensity: null },
+            '2025-12-26': { type: 'bike', name: 'KOLO - Lahka vožnja', description: 'Kratek sprostilen izhod', duration: '60-90 min', intensity: 'C1', route: 3 },
+            '2025-12-27': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2025-12-28': { type: 'bike', name: 'KOLO - Lahka tura', description: 'Zavrtec okolica', duration: '90-120 min', intensity: 'C1-C2', route: 4 },
+            '2025-12-29': { type: 'rest', name: 'Aktivni počitek', description: 'Sprehod', duration: '60 min', intensity: 'C1' },
+
+            // Week 7 (Dec 30 - Jan 5)
+            '2025-12-30': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-31': { type: 'bike', name: 'KOLO - Konec leta', description: 'Lahka tura', duration: '60-90 min', intensity: 'C1-C2', route: 3 },
+            '2026-01-01': { type: 'rest', name: 'Novo leto - Počitek', description: 'Družina', duration: '-', intensity: null },
+            '2026-01-02': { type: 'rest', name: 'Novo leto - Aktivni počitek', description: 'Sprehod', duration: '60 min', intensity: 'C1' },
+            '2026-01-03': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2026-01-04': { type: 'bike', name: 'KOLO - Povratek k treningu', description: 'Rovte MTB', duration: '90-120 min', intensity: 'C2', route: 3 },
+            '2026-01-05': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60 min', intensity: 'C1' },
+
+            // Week 8 (Jan 6-12) - Nazaj k rednem treningu
+            '2026-01-06': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-07': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Žibrše-Hotedršica', duration: '90-120 min', intensity: 'C2-C4', route: 2, intervals: '5x (3 min C4 + 3 min C2)' },
+            '2026-01-08': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-09': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2026-01-10': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2026-01-11': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Idrija Loop', duration: '2.5-3h', intensity: 'C1-C2', route: 7 },
+            '2026-01-12': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 9 (Jan 13-19)
+            '2026-01-13': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-14': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte-Logatec', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: '6x (3 min C4 + 2 min C2)' },
+            '2026-01-15': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-16': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Pyramid Workout', duration: '50-60 min', intensity: 'C3-C4', workout: 9 },
+            '2026-01-17': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + tek', duration: '30-40 min', intensity: 'C1' },
+            '2026-01-18': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Šmarna Gora', duration: '2.5-3h', intensity: 'C1-C2', route: 5 },
+            '2026-01-19': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 10 (Jan 20-26)
+            '2026-01-20': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-21': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Zavrtec Intervali', duration: '90-120 min', intensity: 'C2-C4', route: 4, intervals: '5x (4 min C4 + 3 min C2)' },
+            '2026-01-22': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-23': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2026-01-24': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2026-01-25': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Ljubljansko Barje', duration: '3-3.5h', intensity: 'C1-C2', route: 9 },
+            '2026-01-26': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 11 (Jan 27 - Feb 2)
+            '2026-01-27': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-28': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte MTB Trails', duration: '90-120 min', intensity: 'C2-C4', route: 3, intervals: '6x (3 min C4 + 2 min C2)' },
+            '2026-01-29': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-01-30': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Threshold Builder', duration: '50-60 min', intensity: 'C2-C3', workout: 6 },
+            '2026-01-31': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek', duration: '30-40 min', intensity: 'C1' },
+            '2026-02-01': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Polhograjski Dolomiti', duration: '2.5-3h', intensity: 'C1-C2', route: 6 },
+            '2026-02-02': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 12 (Feb 3-9)
+            '2026-02-03': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-04': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Žibrše-Hotedršica', duration: '90-120 min', intensity: 'C2-C4', route: 2, intervals: '5x (4 min C4 + 3 min C2)' },
+            '2026-02-05': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-06': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2026-02-07': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2026-02-08': { type: 'bike', name: 'KOLO - Prešernov dan tura', description: 'Idrija Loop', duration: '2.5-3h', intensity: 'C1-C2', route: 7 },
+            '2026-02-09': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 13 (Feb 10-16)
+            '2026-02-10': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-11': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte-Logatec', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: '6x (4 min C4 + 2 min C2)' },
+            '2026-02-12': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-13': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Sweet Spot', duration: '45-60 min', intensity: 'C3', workout: 7 },
+            '2026-02-14': { type: 'rest', name: 'Valentinovo - Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
+            '2026-02-15': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Postojnska Vrata', duration: '2-2.5h', intensity: 'C1-C2', route: 8 },
+            '2026-02-16': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 14 (Feb 17-23)
+            '2026-02-17': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-18': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Zavrtec Intervali', duration: '90-120 min', intensity: 'C2-C4', route: 4, intervals: '6x (4 min C4 + 3 min C2)' },
+            '2026-02-19': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-20': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2026-02-21': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek', duration: '30-40 min', intensity: 'C1' },
+            '2026-02-22': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Bevke-Borovnica-Vrhnika', duration: '2.5-3h', intensity: 'C1-C2', route: 10 },
+            '2026-02-23': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 15 - Final week (Feb 24-28)
+            '2026-02-24': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-25': { type: 'bike', name: 'KOLO - Zaključna vožnja', description: 'Rovte-Logatec FTP Test', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: 'FTP test 20 min' },
+            '2026-02-26': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2026-02-27': { type: 'trainer', name: 'TRAINER - Recovery', description: 'Regeneracija', duration: '45 min', intensity: 'C1-C2', workout: 1 },
+            '2026-02-28': { type: 'rest', name: 'Zaključek mezocikla - Počitek', description: 'Popoln počitek pred novim ciklom', duration: '-', intensity: null }
         };
 
         // Routes data with multiple app support
@@ -1014,7 +1128,13 @@
                 elevation: '400-500 m',
                 intensity: 'C2-C3, intervali C4',
                 type: 'Asfalt/makadam mix',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 28000, elevation: 450 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Rovte start
+                    [45.9280, 14.0980],  // Towards Logatec
+                    [45.9156, 14.0783],  // Logatec area
+                    [45.9100, 14.1100],  // Return route
+                    [45.9368, 14.1245]   // Back to Rovte
+                ],
                 description: 'Glavni testni krog za merjenje napredka'
             },
             2: {
@@ -1023,7 +1143,13 @@
                 elevation: '450-550 m',
                 intensity: 'C2-C3',
                 type: 'Mix asfalt/gozdne ceste',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 25000, elevation: 500 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Rovte/Zavrtec start
+                    [45.9500, 14.1400],  // Žibrše area
+                    [45.9600, 14.1200],  // Hotedršica
+                    [45.9450, 14.1100],  // Loop back
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Tehnično zahtevna pot z vzponi'
             },
             3: {
@@ -1032,7 +1158,12 @@
                 elevation: '300-400 m',
                 intensity: 'C2-C3 + tehnika',
                 type: 'Single track, gozdne ceste',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 18000, elevation: 350 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Start
+                    [45.9300, 14.1350],  // Trail section
+                    [45.9400, 14.1450],  // Loop
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Fokus na tehnične veščine'
             },
             4: {
@@ -1041,7 +1172,12 @@
                 elevation: '350-450 m',
                 intensity: 'C2 + intervali C4-C5',
                 type: 'Mix terrain',
-                coords: { lat: 45.9368, lon: 14.1245, distance: 20000, elevation: 400 },
+                waypoints: [
+                    [45.9368, 14.1245],  // Zavrtec start
+                    [45.9250, 14.1350],  // Climb section
+                    [45.9200, 14.1200],  // Interval section
+                    [45.9368, 14.1245]   // Return
+                ],
                 description: 'Strukturirani intervali za moč'
             },
             5: {
@@ -1050,7 +1186,13 @@
                 elevation: '400-600 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, makadam',
-                coords: { lat: 46.0833, lon: 14.4664, distance: 30000, elevation: 500 },
+                waypoints: [
+                    [46.0833, 14.4664],  // Šmarna Gora base
+                    [46.0900, 14.4550],  // Ascent
+                    [46.0950, 14.4700],  // Loop around
+                    [46.0800, 14.4800],  // Return path
+                    [46.0833, 14.4664]   // Back to start
+                ],
                 description: 'Priljubljena vikend tura (Ljubljana 40-50 km)'
             },
             6: {
@@ -1059,7 +1201,13 @@
                 elevation: '500-700 m',
                 intensity: 'C2',
                 type: 'Gozdne ceste',
-                coords: { lat: 46.0600, lon: 14.3000, distance: 35000, elevation: 600 },
+                waypoints: [
+                    [46.0600, 14.3000],  // Polhov Gradec
+                    [46.0700, 14.2800],  // Trail through hills
+                    [46.0800, 14.3100],  // Scenic loop
+                    [46.0650, 14.3200],  // Return
+                    [46.0600, 14.3000]   // Back
+                ],
                 description: 'Lahka tura v čudoviti okolici'
             },
             7: {
@@ -1068,7 +1216,12 @@
                 elevation: '450-550 m',
                 intensity: 'C1-C2',
                 type: 'Mix asfalt/makadam',
-                coords: { lat: 46.0000, lon: 13.9833, distance: 32000, elevation: 500 },
+                waypoints: [
+                    [46.0000, 13.9833],  // Idrija center
+                    [45.9850, 13.9700],  // Spodnja Idrija
+                    [45.9900, 14.0000],  // Loop
+                    [46.0000, 13.9833]   // Return
+                ],
                 description: 'Raziskovanje Idrije'
             },
             8: {
@@ -1077,7 +1230,12 @@
                 elevation: '300-400 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, široki single tracki',
-                coords: { lat: 45.7764, lon: 14.2139, distance: 25000, elevation: 350 },
+                waypoints: [
+                    [45.7764, 14.2139],  // Postojna area
+                    [45.7850, 14.2000],  // Trail section
+                    [45.7700, 14.2250],  // Loop
+                    [45.7764, 14.2139]   // Return
+                ],
                 description: 'Družinska tura'
             },
             9: {
@@ -1086,7 +1244,13 @@
                 elevation: '100-200 m',
                 intensity: 'C1-C2',
                 type: 'Makadam, asfalt (ravnina)',
-                coords: { lat: 45.9500, lon: 14.4500, distance: 40000, elevation: 150 },
+                waypoints: [
+                    [45.9500, 14.4500],  // Barje start
+                    [45.9300, 14.4300],  // South
+                    [45.9200, 14.4600],  // East loop
+                    [45.9400, 14.4700],  // North
+                    [45.9500, 14.4500]   // Return
+                ],
                 description: 'Dolga lahka tura za vzdržljivost'
             },
             10: {
@@ -1095,7 +1259,12 @@
                 elevation: '250-350 m',
                 intensity: 'C2',
                 type: 'Asfalt in gozdne ceste',
-                coords: { lat: 45.9700, lon: 14.3000, distance: 28000, elevation: 300 },
+                waypoints: [
+                    [45.9700, 14.3000],  // Bevke
+                    [45.9550, 14.3150],  // Borovnica
+                    [45.9650, 14.2950],  // Vrhnika
+                    [45.9700, 14.3000]   // Return
+                ],
                 description: 'Lokalna tura blizu doma'
             }
         };
@@ -1191,35 +1360,60 @@
             const route = ROUTES_DATA[routeId];
             if (!route) return '#';
 
-            const { lat, lon, distance, elevation } = route.coords;
+            const waypoints = route.waypoints || [];
 
-            switch(appType) {
-                case 'komoot':
-                    return {
-                        app: `komoot://plan?startLat=${lat}&startLon=${lon}&sport=mtb&distance=${distance}`,
-                        web: `https://www.komoot.com/plan/@${lat},${lon}?sport=mtb&distance=${distance}&elevation=${elevation}`
-                    };
-                case 'strava':
-                    return {
-                        app: `strava://routes/new?lat=${lat}&lon=${lon}`,
-                        web: `https://www.strava.com/routes/new?lat=${lat}&lng=${lon}`
-                    };
-                case 'ridewithgps':
-                    return {
-                        app: `rwgps://`,
-                        web: `https://ridewithgps.com/routes/new?start_lat=${lat}&start_lng=${lon}`
-                    };
-                case 'garmin':
-                    return {
-                        app: `garmin-connect://`,
-                        web: `https://connect.garmin.com/modern/course/create`
-                    };
-                default:
-                    return {
-                        app: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,
-                        web: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
-                    };
+            // If route has a custom Komoot URL (user-created), use it
+            if (route.komootUrl && appType === 'komoot') {
+                return {
+                    app: route.komootUrl,
+                    web: route.komootUrl
+                };
             }
+
+            // Build Google Maps directions URL with waypoints (most reliable)
+            if (waypoints.length > 0) {
+                // Google Maps format: /dir/lat1,lon1/lat2,lon2/lat3,lon3/
+                const waypointPath = waypoints.map(wp => `${wp[0]},${wp[1]}`).join('/');
+                const googleMapsUrl = `https://www.google.com/maps/dir/${waypointPath}`;
+
+                switch(appType) {
+                    case 'komoot':
+                        // Open Google Maps with the route - user can view it and recreate in Komoot
+                        // Or open Komoot planner centered on start point
+                        const centerLat = waypoints[0][0];
+                        const centerLon = waypoints[0][1];
+                        return {
+                            app: googleMapsUrl,
+                            web: `https://www.komoot.com/plan/@${centerLat},${centerLon},14z?sport=mtbbike`
+                        };
+
+                    case 'strava':
+                        return {
+                            app: googleMapsUrl,
+                            web: googleMapsUrl
+                        };
+
+                    case 'ridewithgps':
+                        return {
+                            app: googleMapsUrl,
+                            web: googleMapsUrl
+                        };
+
+                    case 'garmin':
+                        return {
+                            app: googleMapsUrl,
+                            web: googleMapsUrl
+                        };
+
+                    default:
+                        return {
+                            app: googleMapsUrl,
+                            web: googleMapsUrl
+                        };
+                }
+            }
+
+            return { app: '#', web: '#' };
         }
 
         function getWorkoutLink(workoutId, appType = 'mywhoosh') {
@@ -1258,6 +1452,234 @@
         }
 
         // ========================================
+        // GPX FILE GENERATION
+        // ========================================
+        function generateGPX(routeId) {
+            const route = ROUTES_DATA[routeId];
+            if (!route || !route.waypoints) return null;
+
+            const waypoints = route.waypoints;
+            const name = route.name;
+            const description = route.description;
+
+            // GPX XML structure
+            const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MTB Training Tracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${name}</name>
+    <desc>${description}</desc>
+    <author>
+      <name>MTB Training Tracker</name>
+    </author>
+  </metadata>
+  <trk>
+    <name>${name}</name>
+    <desc>${description}</desc>
+    <type>Cycling</type>
+    <trkseg>`;
+
+            const gpxFooter = `
+    </trkseg>
+  </trk>
+</gpx>`;
+
+            // Generate trackpoints
+            let trackpoints = '';
+            waypoints.forEach((wp, index) => {
+                trackpoints += `
+      <trkpt lat="${wp[0]}" lon="${wp[1]}">
+        <name>Waypoint ${index + 1}</name>
+      </trkpt>`;
+            });
+
+            return gpxHeader + trackpoints + gpxFooter;
+        }
+
+        function downloadGPX(routeId) {
+            const gpxContent = generateGPX(routeId);
+            if (!gpxContent) {
+                alert('Napaka pri generiranju GPX datoteke');
+                return;
+            }
+
+            const route = ROUTES_DATA[routeId];
+            const filename = `${route.name.replace(/\s+/g, '_')}.gpx`;
+
+            // Create blob and download
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function quickKomootImport(routeId) {
+            const route = ROUTES_DATA[routeId];
+            const gpxContent = generateGPX(routeId);
+
+            // Create enhanced modal with preview
+            const modal = document.getElementById('trainingModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDate = document.getElementById('modalDate');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = '🚀 Komoot Import';
+            modalDate.textContent = route.name;
+
+            let html = `
+                <div class="training-info">
+                    <h3>📋 Avtomatski Import v Komoot</h3>
+                    <p><strong>Pot:</strong> ${route.name}</p>
+                    <p><strong>Razdalja:</strong> ${route.distance} | <strong>Višina:</strong> ${route.elevation}</p>
+
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h4 style="color: #2e7d32; margin-bottom: 10px;">✨ 3 načini za import:</h4>
+
+                        <div style="margin: 10px 0;">
+                            <strong>1️⃣ Najhitrejši (priporočeno):</strong>
+                            <button onclick="downloadGPXAndOpenKomoot(${routeId})" class="btn btn-primary" style="margin: 5px 0; width: 100%;">
+                                📥 Prenesi GPX + Odpri Komoot
+                            </button>
+                            <small style="color: #666;">↳ Prenese GPX in odpre Komoot import stran</small>
+                        </div>
+
+                        <div style="margin: 10px 0;">
+                            <strong>2️⃣ Google Maps preview:</strong>
+                            <a href="${getRouteLink(routeId, 'komoot').app}" target="_blank" class="btn btn-secondary" style="margin: 5px 0; width: 100%; text-decoration: none; display: block; text-align: center;">
+                                🗺️ Poglej pot v Google Maps
+                            </a>
+                            <small style="color: #666;">↳ Preveri pot pred importom</small>
+                        </div>
+
+                        <div style="margin: 10px 0;">
+                            <strong>3️⃣ Neposredni GPX:</strong>
+                            <button onclick="copyGPXToClipboard(${routeId})" class="btn btn-success" style="margin: 5px 0; width: 100%;">
+                                📋 Kopiraj GPX v clipboard
+                            </button>
+                            <small style="color: #666;">↳ Za ročni import ali drugo aplikacijo</small>
+                        </div>
+                    </div>
+
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h4 style="color: #e65100; margin-bottom: 10px;">📖 Koraki za Komoot:</h4>
+                        <ol style="margin-left: 20px; line-height: 1.8;">
+                            <li>Klikni "📥 Prenesi GPX + Odpri Komoot"</li>
+                            <li>Komoot se bo odprl v novem zavihku</li>
+                            <li>V Komoot klikni <strong>"Import a Tour"</strong> ali <strong>"Upload GPX"</strong></li>
+                            <li>Izberi preneseno datoteko <code>${route.name.replace(/\s+/g, '_')}.gpx</code></li>
+                            <li>Komoot bo avtomatsko ustvaril pot z ${route.waypoints?.length || 0} točkami</li>
+                            <li>Preveri in shrani pot! 🎉</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                        <small style="color: #666;">
+                            <strong>💡 Namig:</strong> GPX datoteka vsebuje ${route.waypoints?.length || 0} waypoint točk.
+                            Komoot bo avtomatsko optimiziral pot med točkami za MTB.
+                            Lahko jo še prilagodiš (spremeniš površino, dodaš točke...).
+                        </small>
+                    </div>
+                </div>
+            `;
+
+            modalBody.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        function downloadGPXAndOpenKomoot(routeId) {
+            const route = ROUTES_DATA[routeId];
+
+            // Try to open directly in Komoot app/web with coordinates
+            const waypoints = route.waypoints;
+            if (waypoints && waypoints.length > 0) {
+                // Build Komoot coordinate URL
+                const coordString = waypoints.map(wp => `${wp[0]},${wp[1]}`).join(',');
+
+                // For mobile devices - try app deep link first
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // Try Komoot app deep link with coordinates
+                    const komootAppUrl = `komoot-preview:tour?coordinates=${coordString}&sport=mtb_easy&name=${encodeURIComponent(route.name)}`;
+
+                    // Attempt to open app
+                    window.location.href = komootAppUrl;
+
+                    // Fallback to web after short delay if app doesn't open
+                    setTimeout(() => {
+                        const webUrl = `https://www.komoot.com/plan/@${waypoints[0][0]},${waypoints[0][1]},14z?sport=mtbbike&name=${encodeURIComponent(route.name)}`;
+                        window.open(webUrl, '_blank');
+                    }, 1500);
+                } else {
+                    // For desktop - create an intermediate page that auto-imports
+                    createKomootAutoImportPage(routeId);
+                }
+            }
+        }
+
+        function createKomootAutoImportPage(routeId) {
+            const route = ROUTES_DATA[routeId];
+            const gpxContent = generateGPX(routeId);
+            const waypoints = route.waypoints;
+
+            // Build HTML safely without nested template literals
+            const htmlParts = [];
+            htmlParts.push('<!DOCTYPE html><html><head><meta charset="UTF-8">');
+            htmlParts.push('<title>Importing to Komoot</title>');
+            htmlParts.push('<style>body{font-family:Arial,sans-serif;max-width:600px;margin:50px auto;padding:20px;text-align:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}');
+            htmlParts.push('.card{background:white;color:#333;padding:30px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}');
+            htmlParts.push('.btn{display:inline-block;padding:15px 30px;margin:10px;border-radius:8px;text-decoration:none;font-weight:bold;cursor:pointer;border:none;font-size:16px}');
+            htmlParts.push('.btn-primary{background:#ff6900;color:white}.btn-secondary{background:#6c757d;color:white}</style></head><body>');
+            htmlParts.push('<div class="card"><h1>🚀 ' + route.name.replace(/[<>"']/g, '') + '</h1>');
+            htmlParts.push('<p><strong>Razdalja:</strong> ' + route.distance + ' | <strong>Višina:</strong> ' + route.elevation + '</p>');
+            htmlParts.push('<h3>Import v Komoot</h3>');
+            htmlParts.push('<button class="btn btn-primary" onclick="downloadAndOpen()">📥 Prenesi GPX + Odpri Komoot</button>');
+            htmlParts.push('<button class="btn btn-secondary" onclick="copyGPX()">📋 Kopiraj GPX</button>');
+            htmlParts.push('<p style="margin-top:20px"><small>GPX vsebuje ' + waypoints.length + ' waypoint točk</small></p></div>');
+            htmlParts.push('<script>const gpxData=' + JSON.stringify(gpxContent) + ';');
+            htmlParts.push('const routeName=' + JSON.stringify(route.name.replace(/\s+/g, '_')) + ';');
+            htmlParts.push('function downloadAndOpen(){const blob=new Blob([gpxData],{type:"application/gpx+xml"});');
+            htmlParts.push('const url=URL.createObjectURL(blob);const a=document.createElement("a");');
+            htmlParts.push('a.href=url;a.download=routeName+".gpx";document.body.appendChild(a);a.click();');
+            htmlParts.push('document.body.removeChild(a);URL.revokeObjectURL(url);');
+            htmlParts.push('setTimeout(function(){window.open("https://www.komoot.com/plan","_blank");');
+            htmlParts.push('alert("✅ GPX prenesan!\\n✅ Komoot odprt!\\n\\nV Komoot:\\n→ Klikni Import Tour\\n→ Izberi "+routeName+".gpx");},500);}');
+            htmlParts.push('function copyGPX(){navigator.clipboard.writeText(gpxData).then(function(){alert("✅ GPX kopiran!");});}');
+            htmlParts.push('window.onload=function(){setTimeout(downloadAndOpen,1000);};</script></body></html>');
+
+            const htmlContent = htmlParts.join('');
+
+            // Open in new window
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+                newWindow.document.write(htmlContent);
+                newWindow.document.close();
+            } else {
+                alert('Popup blocked! Please allow popups.');
+            }
+        }
+
+        function copyGPXToClipboard(routeId) {
+            const gpxContent = generateGPX(routeId);
+            const route = ROUTES_DATA[routeId];
+
+            navigator.clipboard.writeText(gpxContent).then(() => {
+                alert(`✅ GPX za "${route.name}" kopiran v clipboard!\n\n` +
+                      `Lahko ga prilepiš v:\n` +
+                      `• Komoot (Import → Paste GPX)\n` +
+                      `• Garmin Connect\n` +
+                      `• Strava\n` +
+                      `• Katerokoli drugo aplikacijo`);
+            }).catch(err => {
+                alert('Napaka pri kopiranju. Uporabi "Prenesi GPX" gumb.');
+            });
+        }
+
+        // ========================================
         // AUTHENTICATION FUNCTIONS
         // ========================================
         async function checkAuth() {
@@ -1267,6 +1689,7 @@
                 currentUser = session.user;
                 await loadUserProfile();
                 await loadTrainingLogs();
+                await loadCustomEvents();
                 showMainApp();
             } else {
                 showAuthScreen();
@@ -1395,7 +1818,7 @@
         }
 
         async function loadTrainingLogs() {
-            const { data, error } = await supabase
+            const { data, error} = await supabase
                 .from('training_logs')
                 .select('*')
                 .eq('user_id', currentUser.id)
@@ -1404,6 +1827,72 @@
             if (!error && data) {
                 trainingLogs = data;
             }
+        }
+
+        async function loadCustomEvents() {
+            const { data, error } = await supabase
+                .from('custom_training_events')
+                .select('*')
+                .eq('user_id', currentUser.id);
+
+            if (!error && data) {
+                customEvents = data;
+            } else if (error && error.code === '42P01') {
+                // Table doesn't exist yet - that's OK, user hasn't run the SQL yet
+                console.log('Custom events table not found - run CUSTOM_EVENTS_TABLE.sql');
+                customEvents = [];
+            }
+        }
+
+        function getTrainingForDate(dateStr) {
+            // Check if this date is deleted
+            const deleted = customEvents.find(e => e.date === dateStr && e.action === 'delete');
+            if (deleted) return null;
+
+            // Check if there's a custom event for this date
+            const custom = customEvents.find(e => e.date === dateStr && e.action === 'add');
+            if (custom) {
+                return {
+                    type: custom.type,
+                    name: custom.name,
+                    description: custom.description,
+                    duration: custom.duration,
+                    intensity: custom.intensity,
+                    route: custom.route,
+                    workout: custom.workout,
+                    intervals: custom.intervals
+                };
+            }
+
+            // Return base plan
+            return TRAINING_PLAN[dateStr] || null;
+        }
+
+        async function deleteTrainingDay(dateStr) {
+            if (!confirm('Ali si prepričan, da želiš izbrisati ta trening iz urnika?')) return;
+
+            const { error } = await supabase
+                .from('custom_training_events')
+                .upsert({
+                    user_id: currentUser.id,
+                    date: dateStr,
+                    action: 'delete'
+                }, {
+                    onConflict: 'user_id,date,action'
+                });
+
+            if (error) {
+                if (error.code === '42P01') {
+                    alert('Najprej poženi SQL iz datoteke CUSTOM_EVENTS_TABLE.sql v Supabase!');
+                } else {
+                    alert('Napaka: ' + error.message);
+                }
+                return;
+            }
+
+            await loadCustomEvents();
+            closeModal();
+            renderCalendar();
         }
 
         function updateUserInfo() {
@@ -1450,7 +1939,7 @@
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const training = TRAINING_PLAN[dateStr];
+                const training = getTrainingForDate(dateStr);
                 const log = trainingLogs.find(l => l.date === dateStr);
 
                 let classes = 'calendar-day';
@@ -1502,10 +1991,12 @@
         }
 
         function openDay(dateStr) {
-            const training = TRAINING_PLAN[dateStr];
+            const training = getTrainingForDate(dateStr);
             const log = trainingLogs.find(l => l.date === dateStr);
 
-            if (!training) {
+            const hasBaseTraining = TRAINING_PLAN[dateStr] !== undefined;
+
+            if (!training && !log) {
                 alert('Ni načrtovanega treninga za ta dan.');
                 return;
             }
@@ -1513,21 +2004,26 @@
             const date = new Date(dateStr);
             const dateFormatted = date.toLocaleDateString('sl-SI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-            document.getElementById('modalTitle').textContent = training.name;
+            document.getElementById('modalTitle').textContent = training ? training.name : 'Trening';
             document.getElementById('modalDate').textContent = dateFormatted;
 
-            let html = '<div class="training-info">';
-            html += '<h3>📋 Podrobnosti Treninga</h3>';
-            html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${training.name}</span></div>`;
-            html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${training.description}</span></div>`;
-            html += `<div class="info-row"><span class="info-label">Trajanje:</span><span class="info-value">${training.duration}</span></div>`;
-            if (training.intensity) {
-                html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value"><span class="intensity-badge intensity-${training.intensity.toLowerCase().replace('-', '')}">${training.intensity}</span></span></div>`;
+            let html = '';
+
+            // Show training details if training exists
+            if (training) {
+                html += '<div class="training-info">';
+                html += '<h3>📋 Podrobnosti Treninga</h3>';
+                html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${training.name}</span></div>`;
+                html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${training.description}</span></div>`;
+                html += `<div class="info-row"><span class="info-label">Trajanje:</span><span class="info-value">${training.duration}</span></div>`;
+                if (training.intensity) {
+                    html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value"><span class="intensity-badge intensity-${training.intensity.toLowerCase().replace('-', '')}">${training.intensity}</span></span></div>`;
+                }
+                if (training.intervals) {
+                    html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
+                }
+                html += '</div>';
             }
-            if (training.intervals) {
-                html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
-            }
-            html += '</div>';
 
             // Route links based on user preference
             if (training.route && userProfile) {
@@ -1540,6 +2036,8 @@
                 html += `<p>${route.description}</p>`;
                 html += `<a href="${links.app}" class="route-link">📍 Odpri v ${userProfile.cycling_app.charAt(0).toUpperCase() + userProfile.cycling_app.slice(1)}</a>`;
                 html += `<a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web verzija</a>`;
+                html += `<button onclick="downloadGPX(${training.route})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 GPX</button>`;
+                html += `<button onclick="quickKomootImport(${training.route})" class="route-link" style="background: #ff6900; border: none; cursor: pointer;">🚀 Komoot Import</button>`;
                 html += '</div>';
             }
 
@@ -1571,6 +2069,13 @@
                 if (log.avg_power) html += `<div class="info-row"><span class="info-label">Avg Power:</span><span class="info-value">${log.avg_power} W</span></div>`;
                 if (log.notes) html += `<div class="info-row"><span class="info-label">Opombe:</span><span class="info-value">${log.notes}</span></div>`;
                 html += `<button class="btn btn-secondary" style="margin-top: 15px;" onclick="deleteLog('${log.id}')">Izbriši zapis</button>`;
+                html += '</div>';
+            }
+
+            // Add delete training button if this is a base plan training
+            if (hasBaseTraining && training) {
+                html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">';
+                html += `<button class="btn btn-danger" onclick="deleteTrainingDay('${dateStr}')">🗑️ Izbriši ta trening iz urnika</button>`;
                 html += '</div>';
             }
 
@@ -1748,6 +2253,8 @@
                         <p style="margin: 5px 0; font-size: 12px; color: #999;"><strong>Tip:</strong> ${route.type}</p>
                         <a href="${links.app}" class="route-link">📍 ${userProfile.cycling_app.toUpperCase()}</a>
                         <a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web</a>
+                        <button onclick="downloadGPX(${id})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 GPX</button>
+                        <button onclick="quickKomootImport(${id})" class="route-link" style="background: #ff6900; border: none; cursor: pointer;">🚀 Komoot Import</button>
                     </div>
                 `;
             }
@@ -2004,12 +2511,12 @@
         // ========================================
         document.addEventListener('DOMContentLoaded', async function() {
             // Check if Supabase credentials are configured
-            if (SUPABASE_URL === 'https://pxmrnpfbuxicgdmlcakh.supabase.co' || SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4bXJucGZidXhpY2dkbWxjYWtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0NTg4NjQsImV4cCI6MjA3OTAzNDg2NH0.rd2hITsB46zsQGNqWEvzSnFzjSuOfGp2M50C7eXjwEE') {
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
                 document.body.innerHTML = `
                     <div class="auth-container">
                         <h1>⚠️ Konfiguracija Potrebna</h1>
                         <div class="alert alert-error">
-                            <strong>Supabase ni konfiguriran!</strong><br><br>  
+                            <strong>Supabase ni konfiguriran!</strong><br><br>
                             Prosim, sledi navodilom v datoteki <strong>SUPABASE_SETUP_GUIDE.md</strong>
                             za nastavitev Supabase projekta.<br><br>
                             Ko dobiš API ključe, jih vstavi v datoteko <strong>index-supabase.html</strong>.
