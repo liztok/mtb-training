@@ -981,6 +981,7 @@
         let currentUser = null;
         let userProfile = null;
         let trainingLogs = [];
+        let customEvents = []; // Custom training events (add/delete)
         let currentDate = new Date(2025, 10, 18);
         let currentView = 'calendar';
 
@@ -1451,6 +1452,72 @@
         }
 
         // ========================================
+        // GPX FILE GENERATION
+        // ========================================
+        function generateGPX(routeId) {
+            const route = ROUTES_DATA[routeId];
+            if (!route || !route.waypoints) return null;
+
+            const waypoints = route.waypoints;
+            const name = route.name;
+            const description = route.description;
+
+            // GPX XML structure
+            const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MTB Training Tracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${name}</name>
+    <desc>${description}</desc>
+    <author>
+      <name>MTB Training Tracker</name>
+    </author>
+  </metadata>
+  <trk>
+    <name>${name}</name>
+    <desc>${description}</desc>
+    <type>Cycling</type>
+    <trkseg>`;
+
+            const gpxFooter = `
+    </trkseg>
+  </trk>
+</gpx>`;
+
+            // Generate trackpoints
+            let trackpoints = '';
+            waypoints.forEach((wp, index) => {
+                trackpoints += `
+      <trkpt lat="${wp[0]}" lon="${wp[1]}">
+        <name>Waypoint ${index + 1}</name>
+      </trkpt>`;
+            });
+
+            return gpxHeader + trackpoints + gpxFooter;
+        }
+
+        function downloadGPX(routeId) {
+            const gpxContent = generateGPX(routeId);
+            if (!gpxContent) {
+                alert('Napaka pri generiranju GPX datoteke');
+                return;
+            }
+
+            const route = ROUTES_DATA[routeId];
+            const filename = `${route.name.replace(/\s+/g, '_')}.gpx`;
+
+            // Create blob and download
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ========================================
         // AUTHENTICATION FUNCTIONS
         // ========================================
         async function checkAuth() {
@@ -1460,6 +1527,7 @@
                 currentUser = session.user;
                 await loadUserProfile();
                 await loadTrainingLogs();
+                await loadCustomEvents();
                 showMainApp();
             } else {
                 showAuthScreen();
@@ -1588,7 +1656,7 @@
         }
 
         async function loadTrainingLogs() {
-            const { data, error } = await supabase
+            const { data, error} = await supabase
                 .from('training_logs')
                 .select('*')
                 .eq('user_id', currentUser.id)
@@ -1597,6 +1665,72 @@
             if (!error && data) {
                 trainingLogs = data;
             }
+        }
+
+        async function loadCustomEvents() {
+            const { data, error } = await supabase
+                .from('custom_training_events')
+                .select('*')
+                .eq('user_id', currentUser.id);
+
+            if (!error && data) {
+                customEvents = data;
+            } else if (error && error.code === '42P01') {
+                // Table doesn't exist yet - that's OK, user hasn't run the SQL yet
+                console.log('Custom events table not found - run CUSTOM_EVENTS_TABLE.sql');
+                customEvents = [];
+            }
+        }
+
+        function getTrainingForDate(dateStr) {
+            // Check if this date is deleted
+            const deleted = customEvents.find(e => e.date === dateStr && e.action === 'delete');
+            if (deleted) return null;
+
+            // Check if there's a custom event for this date
+            const custom = customEvents.find(e => e.date === dateStr && e.action === 'add');
+            if (custom) {
+                return {
+                    type: custom.type,
+                    name: custom.name,
+                    description: custom.description,
+                    duration: custom.duration,
+                    intensity: custom.intensity,
+                    route: custom.route,
+                    workout: custom.workout,
+                    intervals: custom.intervals
+                };
+            }
+
+            // Return base plan
+            return TRAINING_PLAN[dateStr] || null;
+        }
+
+        async function deleteTrainingDay(dateStr) {
+            if (!confirm('Ali si prepričan, da želiš izbrisati ta trening iz urnika?')) return;
+
+            const { error } = await supabase
+                .from('custom_training_events')
+                .upsert({
+                    user_id: currentUser.id,
+                    date: dateStr,
+                    action: 'delete'
+                }, {
+                    onConflict: 'user_id,date,action'
+                });
+
+            if (error) {
+                if (error.code === '42P01') {
+                    alert('Najprej poženi SQL iz datoteke CUSTOM_EVENTS_TABLE.sql v Supabase!');
+                } else {
+                    alert('Napaka: ' + error.message);
+                }
+                return;
+            }
+
+            await loadCustomEvents();
+            closeModal();
+            renderCalendar();
         }
 
         function updateUserInfo() {
@@ -1643,7 +1777,7 @@
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const training = TRAINING_PLAN[dateStr];
+                const training = getTrainingForDate(dateStr);
                 const log = trainingLogs.find(l => l.date === dateStr);
 
                 let classes = 'calendar-day';
@@ -1695,10 +1829,12 @@
         }
 
         function openDay(dateStr) {
-            const training = TRAINING_PLAN[dateStr];
+            const training = getTrainingForDate(dateStr);
             const log = trainingLogs.find(l => l.date === dateStr);
 
-            if (!training) {
+            const hasBaseTraining = TRAINING_PLAN[dateStr] !== undefined;
+
+            if (!training && !log) {
                 alert('Ni načrtovanega treninga za ta dan.');
                 return;
             }
@@ -1733,6 +1869,7 @@
                 html += `<p>${route.description}</p>`;
                 html += `<a href="${links.app}" class="route-link">📍 Odpri v ${userProfile.cycling_app.charAt(0).toUpperCase() + userProfile.cycling_app.slice(1)}</a>`;
                 html += `<a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web verzija</a>`;
+                html += `<button onclick="downloadGPX(${training.route})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 Prenesi GPX</button>`;
                 html += '</div>';
             }
 
@@ -1764,6 +1901,13 @@
                 if (log.avg_power) html += `<div class="info-row"><span class="info-label">Avg Power:</span><span class="info-value">${log.avg_power} W</span></div>`;
                 if (log.notes) html += `<div class="info-row"><span class="info-label">Opombe:</span><span class="info-value">${log.notes}</span></div>`;
                 html += `<button class="btn btn-secondary" style="margin-top: 15px;" onclick="deleteLog('${log.id}')">Izbriši zapis</button>`;
+                html += '</div>';
+            }
+
+            // Add delete training button if this is a base plan training
+            if (hasBaseTraining && training) {
+                html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">';
+                html += `<button class="btn btn-danger" onclick="deleteTrainingDay('${dateStr}')">🗑️ Izbriši ta trening iz urnika</button>`;
                 html += '</div>';
             }
 
@@ -1941,6 +2085,7 @@
                         <p style="margin: 5px 0; font-size: 12px; color: #999;"><strong>Tip:</strong> ${route.type}</p>
                         <a href="${links.app}" class="route-link">📍 ${userProfile.cycling_app.toUpperCase()}</a>
                         <a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web</a>
+                        <button onclick="downloadGPX(${id})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 Prenesi GPX</button>
                     </div>
                 `;
             }
