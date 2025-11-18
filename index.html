@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MTB Trening Plan U15 - Training Tracker</title>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             margin: 0;
@@ -44,6 +48,135 @@
             overflow: hidden;
         }
 
+        /* Auth Screens */
+        .auth-container {
+            max-width: 450px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .auth-container h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .auth-switch a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Main App Styles */
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -82,6 +215,34 @@
         .stat-box .label {
             font-size: 12px;
             opacity: 0.9;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info .user-name {
+            font-weight: 600;
+        }
+
+        .user-info button {
+            background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 6px 12px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .user-info button:hover {
+            background: rgba(255,255,255,0.5);
         }
 
         nav {
@@ -255,7 +416,7 @@
             background: rgba(108, 117, 125, 0.1);
         }
 
-        /* Training Detail Modal */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -376,7 +537,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* Training Log Form */
         .log-form {
             background: #f8f9fa;
             padding: 20px;
@@ -396,81 +556,11 @@
             margin-bottom: 15px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 5px;
-            font-size: 13px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
-        }
-
         .form-group textarea {
             resize: vertical;
             min-height: 80px;
         }
 
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        /* Training Log View */
         .log-table {
             width: 100%;
             border-collapse: collapse;
@@ -510,10 +600,6 @@
             font-size: 12px;
         }
 
-        .log-table .delete-btn:hover {
-            background: #c82333;
-        }
-
         .intensity-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -529,7 +615,6 @@
         .intensity-c4 { background: var(--c4); }
         .intensity-c5 { background: var(--c5); }
 
-        /* Routes View */
         .routes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -581,23 +666,51 @@
             font-weight: bold;
         }
 
-        .sync-controls {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 15px;
-            border-radius: 10px;
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
             margin-bottom: 20px;
         }
 
-        .sync-controls h3 {
-            color: var(--primary);
-            margin-bottom: 10px;
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
         }
 
-        .sync-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
+            transition: width 0.3s;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary);
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Responsive */
@@ -645,64 +758,79 @@
             .routes-grid {
                 grid-template-columns: 1fr;
             }
-
-            .log-table {
-                font-size: 11px;
-            }
-
-            .log-table th,
-            .log-table td {
-                padding: 8px 5px;
-            }
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
-            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Auth Screen (shown when not logged in) -->
+    <div id="authScreen" class="auth-container" style="display: none;">
+        <h1>🚵 MTB Training Tracker</h1>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form" style="display: none;">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Prijava</h2>
+            <div id="loginError"></div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Geslo</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button class="btn btn-primary" onclick="login()">Prijava</button>
+            <div class="auth-switch">
+                Še nimaš računa? <a href="#" onclick="showRegister(); return false;">Registriraj se</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="auth-form" style="display: none;">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Registracija</h2>
+            <div id="registerError"></div>
+            <div class="form-group">
+                <label>Ime in priimek</label>
+                <input type="text" id="registerName" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Geslo (min. 6 znakov)</label>
+                <input type="password" id="registerPassword" required>
+            </div>
+            <div class="form-group">
+                <label>Kraj bivanja</label>
+                <input type="text" id="registerLocation" placeholder="npr. Zavrtec, Rovte">
+            </div>
+            <div class="form-group">
+                <label>Priljubljena aplikacija za kolesarjenje</label>
+                <select id="registerCyclingApp">
+                    <option value="komoot">Komoot</option>
+                    <option value="strava">Strava</option>
+                    <option value="ridewithgps">RideWithGPS</option>
+                    <option value="garmin">Garmin Connect</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Priljubljena aplikacija za indoor trening</label>
+                <select id="registerIndoorApp">
+                    <option value="mywhoosh">MyWhoosh</option>
+                    <option value="zwift">Zwift</option>
+                    <option value="trainerroad">TrainerRoad</option>
+                    <option value="rouvy">Rouvy</option>
+                </select>
+            </div>
+            <button class="btn btn-success" onclick="register()">Registriraj se</button>
+            <div class="auth-switch">
+                Že imaš račun? <a href="#" onclick="showLogin(); return false;">Prijava</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (shown when logged in) -->
+    <div id="mainApp" class="container" style="display: none;">
         <header>
             <h1>🚵 MTB Trening Plan U15</h1>
             <div class="header-stats">
@@ -719,15 +847,22 @@
                     <div class="label">Skupaj km</div>
                 </div>
             </div>
+            <div class="user-info">
+                <div>
+                    <div class="user-name" id="userName">Uporabnik</div>
+                    <div style="font-size: 11px; opacity: 0.8;" id="userLocation">-</div>
+                </div>
+                <button onclick="logout()">Odjava</button>
+            </div>
         </header>
 
         <nav>
             <button class="nav-btn active" onclick="showView('calendar')">📅 Koledar</button>
             <button class="nav-btn" onclick="showView('routes')">🗺️ Poti</button>
-            <button class="nav-btn" onclick="showView('workouts')">🏠 MyWhoosh</button>
+            <button class="nav-btn" onclick="showView('workouts')">🏠 Indoor</button>
             <button class="nav-btn" onclick="showView('log')">📝 Zgodovina</button>
             <button class="nav-btn" onclick="showView('stats')">📊 Statistika</button>
-            <button class="nav-btn" onclick="showView('sync')">☁️ Sync</button>
+            <button class="nav-btn" onclick="showView('profile')">👤 Profil</button>
             <button class="nav-btn" onclick="showView('info')">ℹ️ Info</button>
         </nav>
 
@@ -742,71 +877,37 @@
                         <button onclick="nextMonth()">Naslednji →</button>
                     </div>
                 </div>
-                <div id="calendarGrid" class="calendar-grid">
-                    <!-- Calendar will be generated here -->
-                </div>
+                <div id="calendarGrid" class="calendar-grid"></div>
             </div>
 
             <!-- Routes View -->
             <div id="routes" class="view">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">🗺️ Kolesarske Poti</h2>
-                <div id="routesGrid" class="routes-grid">
-                    <!-- Routes will be generated here -->
-                </div>
+                <div id="routesGrid" class="routes-grid"></div>
             </div>
 
             <!-- Workouts View -->
             <div id="workouts" class="view">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">🏠 MyWhoosh Workouts</h2>
-                <div id="workoutsGrid" class="routes-grid">
-                    <!-- Workouts will be generated here -->
-                </div>
+                <h2 style="color: var(--primary); margin-bottom: 20px;">🏠 Indoor Workouts</h2>
+                <div id="workoutsGrid" class="routes-grid"></div>
             </div>
 
             <!-- Log View -->
             <div id="log" class="view">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📝 Zgodovina Treningov</h2>
-                <div id="logContent">
-                    <!-- Training log will be displayed here -->
-                </div>
+                <div id="logContent"></div>
             </div>
 
             <!-- Stats View -->
             <div id="stats" class="view">
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📊 Statistika</h2>
-                <div id="statsContent">
-                    <!-- Statistics will be displayed here -->
-                </div>
+                <div id="statsContent"></div>
             </div>
 
-            <!-- Sync View -->
-            <div id="sync" class="view">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">☁️ Sinhronizacija Podatkov</h2>
-
-                <div class="sync-controls">
-                    <h3>💾 Izvoz in Uvoz Podatkov</h3>
-                    <p style="margin: 10px 0; color: #666;">Izvozi svoje podatke o treningih in jih uvozi na drugi napravi za sinhronizacijo.</p>
-                    <div class="sync-buttons">
-                        <button class="btn btn-primary" onclick="exportData()">📤 Izvozi Podatke</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Uvozi Podatke</button>
-                        <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
-                    </div>
-                    <p style="margin-top: 15px; font-size: 12px; color: #999;">
-                        <strong>Navodila:</strong> Izvozi podatke na tej napravi, prenesi datoteko na drugo napravo in jo uvozi tam.
-                    </p>
-                </div>
-
-                <div class="training-info" style="margin-top: 20px;">
-                    <h3>ℹ️ Kako Deluje Shranjevanje</h3>
-                    <p style="margin: 10px 0;">Podatki o treningih se shranjujejo lokalno v brskalniku vsake naprave. To pomeni:</p>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>✅ Podatki ostanejo shranjeni tudi brez internetne povezave</li>
-                        <li>✅ Popolna zasebnost - podatki so samo na tvoji napravi</li>
-                        <li>⚠️ Vsaka naprava (telefon, tablet, računalnik) ima svoje podatke</li>
-                        <li>⚠️ Če počistiš zgodovino brskalnika, izgubiš podatke</li>
-                    </ul>
-                    <p style="margin-top: 15px;"><strong>Priporočilo:</strong> Redno izvozi podatke kot varnostno kopijo!</p>
-                </div>
+            <!-- Profile View -->
+            <div id="profile" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">👤 Moj Profil</h2>
+                <div id="profileContent"></div>
             </div>
 
             <!-- Info View -->
@@ -848,17 +949,6 @@
                         <li><strong>Vikend:</strong> Daljša lahkotna vožnja 2-3.5h (C1-C2)</li>
                     </ul>
                 </div>
-
-                <div class="training-info" style="margin-top: 20px;">
-                    <h3>⚠️ Varnostna opozorila</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Vedno nosi čelado in zaščitno opremo</li>
-                        <li>Pri slabih vremenskih razmerah prilagodi ali preskoči trening</li>
-                        <li>Če se počutiš zelo utrujenega, vzemi dodatni počitek</li>
-                        <li>Pri bolečinah ali poškodbah se posvetuj s trenerjem/zdravnikom</li>
-                        <li>Redno hidriraj in pravilno se prehranjuj</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
@@ -871,93 +961,60 @@
                 <h2 id="modalTitle">Trening</h2>
                 <div class="date" id="modalDate"></div>
             </div>
-            <div id="modalBody">
-                <!-- Training details will be inserted here -->
-            </div>
+            <div id="modalBody"></div>
         </div>
     </div>
 
     <script>
-        // Training Plan Data
+        // ========================================
+        // SUPABASE CONFIGURATION
+        // ========================================
+        // TODO: Replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ========================================
+        // STATE MANAGEMENT
+        // ========================================
+        let currentUser = null;
+        let userProfile = null;
+        let trainingLogs = [];
+        let currentDate = new Date(2025, 10, 18);
+        let currentView = 'calendar';
+
+        // ========================================
+        // TRAINING PLAN DATA
+        // ========================================
         const TRAINING_PLAN = {
-            // Week 1: Nov 18-24
             '2025-11-18': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
             '2025-11-19': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte-Logatec Loop', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: '4x (2 min C4 + 3 min C2)' },
             '2025-11-20': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-11-21': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica - moč, koordinacija, hitrost', duration: '105 min', intensity: null },
-            '2025-11-22': { type: 'rest', name: 'Počitek', description: 'Raztezanje 15-20 min ali lahka hoja', duration: '30-45 min', intensity: 'C1' },
+            '2025-11-21': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2025-11-22': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '30-45 min', intensity: 'C1' },
             '2025-11-23': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Izberi: Šmarna Gora / Polhov Gradec', duration: '2-2.5h', intensity: 'C1-C2', route: 5 },
-            '2025-11-24': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod ali popoln počitek', duration: '60-90 min', intensity: 'C1' },
-
-            // Week 2: Nov 25 - Dec 1
+            '2025-11-24': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod', duration: '60-90 min', intensity: 'C1' },
             '2025-11-25': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
             '2025-11-26': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Žibrše-Hotedršica Circuit', duration: '90-120 min', intensity: 'C2-C4', route: 2, intervals: '5x (3 min C4 + 3 min C2)' },
             '2025-11-27': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-11-28': { type: 'trainer', name: 'TRAINER - MyWhoosh', description: 'Threshold Builder', duration: '50-60 min', intensity: 'C2-C3', workout: 6 },
+            '2025-11-28': { type: 'trainer', name: 'TRAINER - Indoor', description: 'Threshold Builder', duration: '50-60 min', intensity: 'C2-C3', workout: 6 },
             '2025-11-29': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek/hoja', duration: '30-40 min', intensity: 'C1' },
             '2025-11-30': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Idrija Loop', duration: '2-2.5h', intensity: 'C2', route: 7 },
             '2025-12-01': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod z družino', duration: '60-90 min', intensity: 'C1' },
-
-            // Week 3: Dec 2-8
-            '2025-12-02': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-03': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte Trails - Tehnika', duration: '90-110 min', intensity: 'C2-C4', route: 3, intervals: '6x (2 min C4 + 2 min C2)' },
-            '2025-12-04': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-05': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
-            '2025-12-06': { type: 'rest', name: 'Počitek', description: 'Raztezanje 15 min', duration: '15 min', intensity: null },
-            '2025-12-07': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Bevke-Vrhnika Circuit', duration: '2-2.5h', intensity: 'C1-C2', route: 10 },
-            '2025-12-08': { type: 'rest', name: 'Aktivni počitek', description: 'Hoja v naravi', duration: '60 min', intensity: 'C1' },
-
-            // Week 4: Dec 9-15
-            '2025-12-09': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-10': { type: 'bike', name: 'KOLO - Intervali', description: 'Zavrtec intervalni krog', duration: '90-100 min', intensity: 'C2-C4', route: 4, intervals: '5x (3 min C4 + 3 min C2)' },
-            '2025-12-11': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-12': { type: 'trainer', name: 'TRAINER - MyWhoosh', description: 'Sweet Spot Training', duration: '45-50 min', intensity: 'C2-C3', workout: 7 },
-            '2025-12-13': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + hoja', duration: '30-40 min', intensity: 'C1' },
-            '2025-12-14': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Ljubljansko Barje loop', duration: '2.5-3h', intensity: 'C2', route: 9 },
-            '2025-12-15': { type: 'rest', name: 'Aktivni počitek', description: 'Družinska aktivnost', duration: '60-90 min', intensity: 'C1' },
-
-            // Continue with more weeks...
-            // Week 5: Dec 16-22
-            '2025-12-16': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-17': { type: 'bike', name: 'KOLO - TEST', description: 'Rovte-Logatec Loop - Preveri napredek!', duration: '90-120 min', intensity: 'C2-C3', route: 1, note: 'TEST NAPREDKA' },
-            '2025-12-18': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
-            '2025-12-19': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
-            '2025-12-20': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '15-20 min', intensity: null },
-            '2025-12-21': { type: 'bike', name: 'KOLO - Lahka tura', description: 'Lokalna vožnja Rovte', duration: '1.5-2h', intensity: 'C1-C2' },
-            '2025-12-22': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60 min', intensity: 'C1' },
-
-            // Week 6: Dec 23-29 (BOŽIČ - lažji)
-            '2025-12-23': { type: 'karate', name: 'Karate', description: 'Preveri urnik!', duration: '60-90 min', intensity: null, note: 'Božični teden' },
-            '2025-12-24': { type: 'bike', name: 'LAHKA vožnja', description: 'Kratek krog okoli Zavrtec', duration: '45-60 min', intensity: 'C1-C2' },
-            '2025-12-25': { type: 'rest', name: 'BOŽIČ', description: 'POČITEK', duration: '-', intensity: null },
-            '2025-12-26': { type: 'trainer', name: 'Trainer/outdoor', description: 'MyWhoosh Recovery Ride ali lahka vožnja', duration: '40-50 min', intensity: 'C1-C2', workout: 1 },
-            '2025-12-27': { type: 'rest', name: 'Po izbiri', description: 'Tek, hoja, kolo - kar te veseli', duration: '45-60 min', intensity: 'C1-C2' },
-            '2025-12-28': { type: 'bike', name: 'Družinska vožnja', description: 'Izberi vikend turo', duration: '2-2.5h', intensity: 'C1-C2' },
-            '2025-12-29': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod, igre', duration: '60 min', intensity: 'C1' },
-
-            // Week 7: Dec 30 - Jan 5 (NOVO LETO - lažji)
-            '2025-12-30': { type: 'karate', name: 'Karate', description: 'Preveri urnik!', duration: '60-90 min', intensity: null, note: 'Novoletni teden' },
-            '2025-12-31': { type: 'bike', name: 'LAHKA vožnja', description: 'Kratek trening pred silvestrom', duration: '45-60 min', intensity: 'C1-C2' },
-            '2026-01-01': { type: 'rest', name: 'NOVO LETO', description: 'POČITEK', duration: '-', intensity: null },
-            '2026-01-02': { type: 'bike', name: 'LAHKA vožnja', description: 'Outdoor ali trainer', duration: '45-60 min', intensity: 'C1-C2', workout: 1 },
-            '2026-01-03': { type: 'rest', name: 'Gibljivost', description: 'Raztezanje + lahka hoja', duration: '30-40 min', intensity: 'C1' },
-            '2026-01-04': { type: 'bike', name: 'KOLO - Tura', description: 'Srednje dolga tura', duration: '2-2.5h', intensity: 'C2' },
-            '2026-01-05': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod ali počitek', duration: '60 min', intensity: 'C1' },
-
-            // Add remaining weeks through Feb 28, 2026...
+            // Continue with more dates...
         };
 
-        // FIXED: Proper Komoot deep links that open the app
-        const ROUTES = {
+        // Routes data with multiple app support
+        const ROUTES_DATA = {
             1: {
                 name: 'Rovte - Logatec Loop',
                 distance: '25-30 km',
                 elevation: '400-500 m',
                 intensity: 'C2-C3, intervali C4',
                 type: 'Asfalt/makadam mix',
-                // Deep link that opens Komoot app for route planning
-                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=28000',
-                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=28000&elevation=450',
+                coords: { lat: 45.9368, lon: 14.1245, distance: 28000, elevation: 450 },
                 description: 'Glavni testni krog za merjenje napredka'
             },
             2: {
@@ -966,8 +1023,7 @@
                 elevation: '450-550 m',
                 intensity: 'C2-C3',
                 type: 'Mix asfalt/gozdne ceste',
-                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=25000',
-                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=25000&elevation=500',
+                coords: { lat: 45.9368, lon: 14.1245, distance: 25000, elevation: 500 },
                 description: 'Tehnično zahtevna pot z vzponi'
             },
             3: {
@@ -976,8 +1032,7 @@
                 elevation: '300-400 m',
                 intensity: 'C2-C3 + tehnika',
                 type: 'Single track, gozdne ceste',
-                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=18000',
-                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=18000&elevation=350',
+                coords: { lat: 45.9368, lon: 14.1245, distance: 18000, elevation: 350 },
                 description: 'Fokus na tehnične veščine'
             },
             4: {
@@ -986,8 +1041,7 @@
                 elevation: '350-450 m',
                 intensity: 'C2 + intervali C4-C5',
                 type: 'Mix terrain',
-                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=20000',
-                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=20000&elevation=400',
+                coords: { lat: 45.9368, lon: 14.1245, distance: 20000, elevation: 400 },
                 description: 'Strukturirani intervali za moč'
             },
             5: {
@@ -996,8 +1050,7 @@
                 elevation: '400-600 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, makadam',
-                link: 'komoot://plan?startLat=46.0833&startLon=14.4664&sport=mtb&distance=30000',
-                webLink: 'https://www.komoot.com/plan/@46.0833,14.4664?sport=mtb&distance=30000&elevation=500',
+                coords: { lat: 46.0833, lon: 14.4664, distance: 30000, elevation: 500 },
                 description: 'Priljubljena vikend tura (Ljubljana 40-50 km)'
             },
             6: {
@@ -1006,9 +1059,8 @@
                 elevation: '500-700 m',
                 intensity: 'C2',
                 type: 'Gozdne ceste',
-                link: 'komoot://plan?startLat=46.0600&startLon=14.3000&sport=mtb&distance=35000',
-                webLink: 'https://www.komoot.com/plan/@46.0600,14.3000?sport=mtb&distance=35000&elevation=600',
-                description: 'Lahka tura v čudoviti okolici (Ljubljana 40-50 km)'
+                coords: { lat: 46.0600, lon: 14.3000, distance: 35000, elevation: 600 },
+                description: 'Lahka tura v čudoviti okolici'
             },
             7: {
                 name: 'Idrija - Spodnja Idrija Loop',
@@ -1016,9 +1068,8 @@
                 elevation: '450-550 m',
                 intensity: 'C1-C2',
                 type: 'Mix asfalt/makadam',
-                link: 'komoot://plan?startLat=46.0000&startLon=13.9833&sport=mtb&distance=32000',
-                webLink: 'https://www.komoot.com/plan/@46.0000,13.9833?sport=mtb&distance=32000&elevation=500',
-                description: 'Raziskovanje Idrije (50-60 km vožnja)'
+                coords: { lat: 46.0000, lon: 13.9833, distance: 32000, elevation: 500 },
+                description: 'Raziskovanje Idrije'
             },
             8: {
                 name: 'Postojnska Vrata',
@@ -1026,9 +1077,8 @@
                 elevation: '300-400 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, široki single tracki',
-                link: 'komoot://plan?startLat=45.7764&startLon=14.2139&sport=mtb&distance=25000',
-                webLink: 'https://www.komoot.com/plan/@45.7764,14.2139?sport=mtb&distance=25000&elevation=350',
-                description: 'Družinska tura (30-40 km vožnja)'
+                coords: { lat: 45.7764, lon: 14.2139, distance: 25000, elevation: 350 },
+                description: 'Družinska tura'
             },
             9: {
                 name: 'Ljubljansko Barje Loop',
@@ -1036,9 +1086,8 @@
                 elevation: '100-200 m',
                 intensity: 'C1-C2',
                 type: 'Makadam, asfalt (ravnina)',
-                link: 'komoot://plan?startLat=45.9500&startLon=14.4500&sport=mtb&distance=40000',
-                webLink: 'https://www.komoot.com/plan/@45.9500,14.4500?sport=mtb&distance=40000&elevation=150',
-                description: 'Dolga lahka tura za vzdržljivost (20-30 km)'
+                coords: { lat: 45.9500, lon: 14.4500, distance: 40000, elevation: 150 },
+                description: 'Dolga lahka tura za vzdržljivost'
             },
             10: {
                 name: 'Bevke - Borovnica - Vrhnika',
@@ -1046,23 +1095,20 @@
                 elevation: '250-350 m',
                 intensity: 'C2',
                 type: 'Asfalt in gozdne ceste',
-                link: 'komoot://plan?startLat=45.9700&startLon=14.3000&sport=mtb&distance=28000',
-                webLink: 'https://www.komoot.com/plan/@45.9700,14.3000?sport=mtb&distance=28000&elevation=300',
-                description: 'Lokalna tura blizu doma (20-30 km)'
+                coords: { lat: 45.9700, lon: 14.3000, distance: 28000, elevation: 300 },
+                description: 'Lokalna tura blizu doma'
             }
         };
 
-        // FIXED: MyWhoosh deep links - opens app directly
-        const WORKOUTS = {
+        // Workouts data with multiple app support
+        const WORKOUTS_DATA = {
             1: {
                 name: 'Flat Route - Recovery Ride',
                 duration: '45 min',
                 intensity: 'C1-C2',
-                power: '120-140W (2.4-2.8 W/kg)',
+                power: '120-140W',
                 description: 'Ravninska pot za regeneracijo',
-                // MyWhoosh deep link - opens app
-                link: 'mywhoosh://route/flat-recovery',
-                webLink: 'https://www.mywhoosh.com/routes/flat-recovery'
+                workoutId: 'recovery-ride'
             },
             2: {
                 name: 'Dubai Arena Loop',
@@ -1070,8 +1116,7 @@
                 intensity: 'C1-C2',
                 power: '130-150W',
                 description: 'Lahka tura z minimalnimi vzponi',
-                link: 'mywhoosh://route/dubai-arena',
-                webLink: 'https://www.mywhoosh.com/routes/dubai-arena'
+                workoutId: 'dubai-arena'
             },
             3: {
                 name: 'Desert Loop',
@@ -1079,8 +1124,7 @@
                 intensity: 'C2-C3',
                 power: '140-170W',
                 description: 'Gradnja vzdržljivosti',
-                link: 'mywhoosh://route/desert',
-                webLink: 'https://www.mywhoosh.com/routes/desert'
+                workoutId: 'desert-loop'
             },
             4: {
                 name: 'France Route - Gentle Hills',
@@ -1088,8 +1132,7 @@
                 intensity: 'C2-C3',
                 power: '145-175W',
                 description: 'Blagi vzponi, razvijanje moči',
-                link: 'mywhoosh://route/france-gentle',
-                webLink: 'https://www.mywhoosh.com/routes/france'
+                workoutId: 'france-gentle'
             },
             5: {
                 name: 'Yorkshire Loop',
@@ -1097,17 +1140,15 @@
                 intensity: 'C2',
                 power: '135-160W',
                 description: 'Daljša vzdržljivostna vožnja',
-                link: 'mywhoosh://route/yorkshire',
-                webLink: 'https://www.mywhoosh.com/routes/yorkshire'
+                workoutId: 'yorkshire-loop'
             },
             6: {
                 name: 'Threshold Builder',
                 duration: '50 min',
                 intensity: 'C2-C3 intervali',
-                power: '150-190W v intervalih',
+                power: '150-190W',
                 description: '4x (5 min C3 + 3 min C2)',
-                link: 'mywhoosh://workout/threshold-builder',
-                webLink: 'https://www.mywhoosh.com/workouts/threshold-builder'
+                workoutId: 'threshold-builder'
             },
             7: {
                 name: 'Sweet Spot Training',
@@ -1115,8 +1156,7 @@
                 intensity: 'C3 intervali',
                 power: '155-185W',
                 description: '3x (8 min C3 + 4 min C2)',
-                link: 'mywhoosh://workout/sweet-spot',
-                webLink: 'https://www.mywhoosh.com/workouts/sweet-spot'
+                workoutId: 'sweet-spot'
             },
             8: {
                 name: 'Tempo Intervals 45',
@@ -1124,8 +1164,7 @@
                 intensity: 'C3 tempo',
                 power: '150-180W',
                 description: '6x (4 min C3 + 2 min C1)',
-                link: 'mywhoosh://workout/tempo-intervals',
-                webLink: 'https://www.mywhoosh.com/workouts/tempo'
+                workoutId: 'tempo-intervals'
             },
             9: {
                 name: 'Pyramid Workout',
@@ -1133,8 +1172,7 @@
                 intensity: 'C3-C4 intervali',
                 power: '160-200W',
                 description: '2-4-6-4-2 min intervali',
-                link: 'mywhoosh://workout/pyramid',
-                webLink: 'https://www.mywhoosh.com/workouts/pyramid'
+                workoutId: 'pyramid'
             },
             10: {
                 name: 'Makuri Islands Tour',
@@ -1142,97 +1180,242 @@
                 intensity: 'C1-C2',
                 power: '130-155W',
                 description: 'Zelo dolga lahkotna vožnja',
-                link: 'mywhoosh://route/makuri-islands',
-                webLink: 'https://www.mywhoosh.com/routes/makuri-islands'
+                workoutId: 'makuri-islands'
             }
         };
 
-        // State
-        let currentDate = new Date(2025, 10, 18); // Start from Nov 18, 2025
-        let trainingLogs = JSON.parse(localStorage.getItem('trainingLogs') || '[]');
-        let currentView = 'calendar';
+        // ========================================
+        // LINK GENERATORS
+        // ========================================
+        function getRouteLink(routeId, appType = 'komoot') {
+            const route = ROUTES_DATA[routeId];
+            if (!route) return '#';
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+            const { lat, lon, distance, elevation } = route.coords;
+
+            switch(appType) {
+                case 'komoot':
+                    return {
+                        app: `komoot://plan?startLat=${lat}&startLon=${lon}&sport=mtb&distance=${distance}`,
+                        web: `https://www.komoot.com/plan/@${lat},${lon}?sport=mtb&distance=${distance}&elevation=${elevation}`
+                    };
+                case 'strava':
+                    return {
+                        app: `strava://routes/new?lat=${lat}&lon=${lon}`,
+                        web: `https://www.strava.com/routes/new?lat=${lat}&lng=${lon}`
+                    };
+                case 'ridewithgps':
+                    return {
+                        app: `rwgps://`,
+                        web: `https://ridewithgps.com/routes/new?start_lat=${lat}&start_lng=${lon}`
+                    };
+                case 'garmin':
+                    return {
+                        app: `garmin-connect://`,
+                        web: `https://connect.garmin.com/modern/course/create`
+                    };
+                default:
+                    return {
+                        app: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,
+                        web: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`
+                    };
+            }
+        }
+
+        function getWorkoutLink(workoutId, appType = 'mywhoosh') {
+            const workout = WORKOUTS_DATA[workoutId];
+            if (!workout) return '#';
+
+            const id = workout.workoutId;
+
+            switch(appType) {
+                case 'mywhoosh':
+                    return {
+                        app: `mywhoosh://workout/${id}`,
+                        web: `https://www.mywhoosh.com/workouts/${id}`
+                    };
+                case 'zwift':
+                    return {
+                        app: `zwift://workout/${id}`,
+                        web: `https://www.zwift.com/workouts`
+                    };
+                case 'trainerroad':
+                    return {
+                        app: `trainerroad://workout/${id}`,
+                        web: `https://www.trainerroad.com/app/workouts`
+                    };
+                case 'rouvy':
+                    return {
+                        app: `rouvy://workout/${id}`,
+                        web: `https://rouvy.com/workouts`
+                    };
+                default:
+                    return {
+                        app: '#',
+                        web: '#'
+                    };
+            }
+        }
+
+        // ========================================
+        // AUTHENTICATION FUNCTIONS
+        // ========================================
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+                currentUser = session.user;
+                await loadUserProfile();
+                await loadTrainingLogs();
+                showMainApp();
+            } else {
+                showAuthScreen();
+            }
+        }
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            showLogin();
+        }
+
+        function showMainApp() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
             renderCalendar();
             renderRoutes();
             renderWorkouts();
             updateStats();
-            renderLog();
-        });
-
-        // Data Export/Import Functions
-        function exportData() {
-            const data = {
-                trainingLogs: trainingLogs,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `mtb-training-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            alert('✅ Podatki uspešno izvoženi! Datoteko shrani na varno mesto.');
+            updateUserInfo();
         }
 
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
 
-                    if (confirm('Ali želiš ZDRUŽITI uvožene podatke z obstoječimi ali ZAMENJATI vse podatke?\n\nKlikni OK za ZDRUŽITEV ali Cancel za ZAMENJAVO.')) {
-                        // Merge data
-                        const existingDates = new Set(trainingLogs.map(l => l.date));
-                        const newLogs = data.trainingLogs.filter(l => !existingDates.has(l.date));
-                        trainingLogs = [...trainingLogs, ...newLogs];
-                    } else {
-                        // Replace data
-                        trainingLogs = data.trainingLogs;
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                currentUser = data.user;
+                await loadUserProfile();
+                await loadTrainingLogs();
+                showMainApp();
+            } catch (error) {
+                errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const fullName = document.getElementById('registerName').value;
+            const location = document.getElementById('registerLocation').value;
+            const cyclingApp = document.getElementById('registerCyclingApp').value;
+            const indoorApp = document.getElementById('registerIndoorApp').value;
+            const errorDiv = document.getElementById('registerError');
+
+            if (password.length < 6) {
+                errorDiv.innerHTML = '<div class="alert alert-error">Geslo mora biti dolgo vsaj 6 znakov</div>';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName
+                        }
                     }
+                });
 
-                    localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
-                    updateStats();
-                    renderCalendar();
-                    renderLog();
-                    alert(`✅ Uspešno uvoženo ${data.trainingLogs.length} zapisov treninga!`);
-                } catch (error) {
-                    alert('❌ Napaka pri uvozu podatkov. Preveri, da je datoteka pravilna.');
-                    console.error(error);
-                }
-            };
-            reader.readAsText(file);
+                if (error) throw error;
 
-            // Reset file input
-            event.target.value = '';
+                // Create profile
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update({
+                        full_name: fullName,
+                        location: location,
+                        cycling_app: cyclingApp,
+                        indoor_app: indoorApp
+                    })
+                    .eq('id', data.user.id);
+
+                if (profileError) throw profileError;
+
+                errorDiv.innerHTML = '<div class="alert alert-success">Registracija uspešna! Preveri email za potrditev.</div>';
+
+                setTimeout(() => {
+                    showLogin();
+                }, 2000);
+            } catch (error) {
+                errorDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
         }
 
-        // View Management
-        function showView(viewName) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-            document.getElementById(viewName).classList.add('active');
-            event.target.classList.add('active');
-            currentView = viewName;
-
-            if (viewName === 'log') renderLog();
-            if (viewName === 'stats') renderStats();
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            userProfile = null;
+            trainingLogs = [];
+            showAuthScreen();
         }
 
-        // Calendar Functions
+        // ========================================
+        // DATA LOADING FUNCTIONS
+        // ========================================
+        async function loadUserProfile() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (!error && data) {
+                userProfile = data;
+            }
+        }
+
+        async function loadTrainingLogs() {
+            const { data, error } = await supabase
+                .from('training_logs')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('date', { ascending: false });
+
+            if (!error && data) {
+                trainingLogs = data;
+            }
+        }
+
+        function updateUserInfo() {
+            if (userProfile) {
+                document.getElementById('userName').textContent = userProfile.full_name || userProfile.email;
+                document.getElementById('userLocation').textContent = userProfile.location || '-';
+            }
+        }
+
+        // ========================================
+        // CALENDAR FUNCTIONS
+        // ========================================
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1246,27 +1429,24 @@
             const prevLastDay = new Date(year, month, 0);
 
             let startDay = firstDay.getDay();
-            if (startDay === 0) startDay = 7; // Sunday = 7
-            startDay--; // Monday = 0
+            if (startDay === 0) startDay = 7;
+            startDay--;
 
             const daysInMonth = lastDay.getDate();
             const prevDaysInMonth = prevLastDay.getDate();
 
             let html = '';
 
-            // Day headers
             const dayNames = ['PON', 'TOR', 'SRE', 'ČET', 'PET', 'SOB', 'NED'];
             dayNames.forEach(day => {
                 html += `<div class="calendar-day-header">${day}</div>`;
             });
 
-            // Previous month days
             for (let i = startDay - 1; i >= 0; i--) {
                 const day = prevDaysInMonth - i;
                 html += `<div class="calendar-day other-month"><div class="day-number">${day}</div></div>`;
             }
 
-            // Current month days
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -1297,7 +1477,6 @@
                 html += '</div>';
             }
 
-            // Next month days
             const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
             const nextDays = totalCells - (startDay + daysInMonth);
             for (let i = 1; i <= nextDays; i++) {
@@ -1318,7 +1497,7 @@
         }
 
         function today() {
-            currentDate = new Date(2025, 10, 18); // Back to start
+            currentDate = new Date(2025, 10, 18);
             renderCalendar();
         }
 
@@ -1348,37 +1527,37 @@
             if (training.intervals) {
                 html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
             }
-            if (training.note) {
-                html += `<div class="info-row"><span class="info-label">Opomba:</span><span class="info-value" style="color: var(--warning); font-weight: bold;">${training.note}</span></div>`;
-            }
             html += '</div>';
 
-            // Route or Workout link
-            if (training.route) {
-                const route = ROUTES[training.route];
+            // Route links based on user preference
+            if (training.route && userProfile) {
+                const route = ROUTES_DATA[training.route];
+                const links = getRouteLink(training.route, userProfile.cycling_app);
                 html += '<div class="training-info">';
                 html += '<h3>🗺️ Predlagana Pot</h3>';
                 html += `<p><strong>${route.name}</strong></p>`;
                 html += `<p>Razdalja: ${route.distance} | Višina: ${route.elevation}</p>`;
                 html += `<p>${route.description}</p>`;
-                html += `<a href="${route.link}" class="route-link">📍 Odpri v Komoot App</a>`;
-                html += `<a href="${route.webLink}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Odpri Web</a>`;
+                html += `<a href="${links.app}" class="route-link">📍 Odpri v ${userProfile.cycling_app.charAt(0).toUpperCase() + userProfile.cycling_app.slice(1)}</a>`;
+                html += `<a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web verzija</a>`;
                 html += '</div>';
             }
 
-            if (training.workout) {
-                const workout = WORKOUTS[training.workout];
+            // Workout links based on user preference
+            if (training.workout && userProfile) {
+                const workout = WORKOUTS_DATA[training.workout];
+                const links = getWorkoutLink(training.workout, userProfile.indoor_app);
                 html += '<div class="training-info">';
                 html += '<h3>🏠 Predlagan Workout</h3>';
                 html += `<p><strong>${workout.name}</strong></p>`;
                 html += `<p>Trajanje: ${workout.duration} | Moč: ${workout.power}</p>`;
                 html += `<p>${workout.description}</p>`;
-                html += `<a href="${workout.link}" class="workout-link">🔗 Odpri v MyWhoosh App</a>`;
-                html += `<a href="${workout.webLink}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Odpri Web</a>`;
+                html += `<a href="${links.app}" class="workout-link">🔗 Odpri v ${userProfile.indoor_app.charAt(0).toUpperCase() + userProfile.indoor_app.slice(1)}</a>`;
+                html += `<a href="${links.web}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Web verzija</a>`;
                 html += '</div>';
             }
 
-            // Training log form
+            // Training log form or display
             if (!log) {
                 html += renderLogForm(dateStr, training);
             } else {
@@ -1388,10 +1567,10 @@
                 html += `<div class="info-row"><span class="info-label">Čas:</span><span class="info-value">${log.duration} min</span></div>`;
                 if (log.distance) html += `<div class="info-row"><span class="info-label">Razdalja:</span><span class="info-value">${log.distance} km</span></div>`;
                 if (log.elevation) html += `<div class="info-row"><span class="info-label">Višina:</span><span class="info-value">${log.elevation} m</span></div>`;
-                if (log.avgHr) html += `<div class="info-row"><span class="info-label">Avg HR:</span><span class="info-value">${log.avgHr} BPM</span></div>`;
-                if (log.avgPower) html += `<div class="info-row"><span class="info-label">Avg Power:</span><span class="info-value">${log.avgPower} W</span></div>`;
+                if (log.avg_hr) html += `<div class="info-row"><span class="info-label">Avg HR:</span><span class="info-value">${log.avg_hr} BPM</span></div>`;
+                if (log.avg_power) html += `<div class="info-row"><span class="info-label">Avg Power:</span><span class="info-value">${log.avg_power} W</span></div>`;
                 if (log.notes) html += `<div class="info-row"><span class="info-label">Opombe:</span><span class="info-value">${log.notes}</span></div>`;
-                html += `<button class="btn btn-secondary" style="margin-top: 15px;" onclick="deleteLog('${dateStr}')">Izbriši zapis</button>`;
+                html += `<button class="btn btn-secondary" style="margin-top: 15px;" onclick="deleteLog('${log.id}')">Izbriši zapis</button>`;
                 html += '</div>';
             }
 
@@ -1479,53 +1658,75 @@
             `;
         }
 
-        function saveLog(event, dateStr) {
+        async function saveLog(event, dateStr) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
 
             const log = {
+                user_id: currentUser.id,
                 date: dateStr,
-                duration: formData.get('duration'),
-                distance: formData.get('distance') || null,
-                elevation: formData.get('elevation') || null,
-                avgSpeed: formData.get('avgSpeed') || null,
-                avgHr: formData.get('avgHr') || null,
-                maxHr: formData.get('maxHr') || null,
-                avgPower: formData.get('avgPower') || null,
-                maxPower: formData.get('maxPower') || null,
-                physicalFeeling: formData.get('physicalFeeling') || null,
-                mentalFeeling: formData.get('mentalFeeling') || null,
-                generalFeeling: formData.get('generalFeeling') || null,
+                duration: parseInt(formData.get('duration')),
+                distance: formData.get('distance') ? parseFloat(formData.get('distance')) : null,
+                elevation: formData.get('elevation') ? parseInt(formData.get('elevation')) : null,
+                avg_speed: formData.get('avgSpeed') ? parseFloat(formData.get('avgSpeed')) : null,
+                avg_hr: formData.get('avgHr') ? parseInt(formData.get('avgHr')) : null,
+                max_hr: formData.get('maxHr') ? parseInt(formData.get('maxHr')) : null,
+                avg_power: formData.get('avgPower') ? parseInt(formData.get('avgPower')) : null,
+                max_power: formData.get('maxPower') ? parseInt(formData.get('maxPower')) : null,
+                physical_feeling: formData.get('physicalFeeling') ? parseInt(formData.get('physicalFeeling')) : null,
+                mental_feeling: formData.get('mentalFeeling') ? parseInt(formData.get('mentalFeeling')) : null,
+                general_feeling: formData.get('generalFeeling') ? parseInt(formData.get('generalFeeling')) : null,
                 weather: formData.get('weather') || null,
-                notes: formData.get('notes') || null,
-                timestamp: new Date().toISOString()
+                notes: formData.get('notes') || null
             };
 
-            trainingLogs.push(log);
-            localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
+            const { error } = await supabase
+                .from('training_logs')
+                .insert([log]);
+
+            if (error) {
+                alert('Napaka pri shranjevanju: ' + error.message);
+                return;
+            }
 
             alert('✓ Trening uspešno zabeležen!');
+            await loadTrainingLogs();
             closeModal();
             renderCalendar();
             updateStats();
         }
 
-        function deleteLog(dateStr) {
-            if (confirm('Ali si prepričan, da želiš izbrisati ta zapis?')) {
-                trainingLogs = trainingLogs.filter(l => l.date !== dateStr);
-                localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
-                alert('Zapis izbrisan.');
-                closeModal();
-                renderCalendar();
-                updateStats();
+        async function deleteLog(logId) {
+            if (!confirm('Ali si prepričan, da želiš izbrisati ta zapis?')) return;
+
+            const { error } = await supabase
+                .from('training_logs')
+                .delete()
+                .eq('id', logId);
+
+            if (error) {
+                alert('Napaka pri brisanju: ' + error.message);
+                return;
             }
+
+            alert('Zapis izbrisan.');
+            await loadTrainingLogs();
+            closeModal();
+            renderCalendar();
+            updateStats();
         }
 
+        // ========================================
+        // ROUTES & WORKOUTS RENDERING
+        // ========================================
         function renderRoutes() {
+            if (!userProfile) return;
+
             let html = '';
-            for (let id in ROUTES) {
-                const route = ROUTES[id];
+            for (let id in ROUTES_DATA) {
+                const route = ROUTES_DATA[id];
+                const links = getRouteLink(parseInt(id), userProfile.cycling_app);
                 html += `
                     <div class="route-card">
                         <h3>${route.name}</h3>
@@ -1545,8 +1746,8 @@
                         </div>
                         <p style="margin: 10px 0; color: #666;">${route.description}</p>
                         <p style="margin: 5px 0; font-size: 12px; color: #999;"><strong>Tip:</strong> ${route.type}</p>
-                        <a href="${route.link}" class="route-link">📍 Odpri v Komoot App</a>
-                        <a href="${route.webLink}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Odpri Web</a>
+                        <a href="${links.app}" class="route-link">📍 ${userProfile.cycling_app.toUpperCase()}</a>
+                        <a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web</a>
                     </div>
                 `;
             }
@@ -1554,9 +1755,12 @@
         }
 
         function renderWorkouts() {
+            if (!userProfile) return;
+
             let html = '';
-            for (let id in WORKOUTS) {
-                const workout = WORKOUTS[id];
+            for (let id in WORKOUTS_DATA) {
+                const workout = WORKOUTS_DATA[id];
+                const links = getWorkoutLink(parseInt(id), userProfile.indoor_app);
                 html += `
                     <div class="route-card">
                         <h3>${workout.name}</h3>
@@ -1575,14 +1779,17 @@
                             </div>
                         </div>
                         <p style="margin: 10px 0; color: #666;">${workout.description}</p>
-                        <a href="${workout.link}" class="workout-link">🔗 Odpri v MyWhoosh App</a>
-                        <a href="${workout.webLink}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Odpri Web</a>
+                        <a href="${links.app}" class="workout-link">🔗 ${userProfile.indoor_app.toUpperCase()}</a>
+                        <a href="${links.web}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Web</a>
                     </div>
                 `;
             }
             document.getElementById('workoutsGrid').innerHTML = html;
         }
 
+        // ========================================
+        // STATS & LOGS
+        // ========================================
         function renderLog() {
             if (trainingLogs.length === 0) {
                 document.getElementById('logContent').innerHTML = `
@@ -1595,14 +1802,12 @@
                 return;
             }
 
-            const sorted = [...trainingLogs].sort((a, b) => new Date(b.date) - new Date(a.date));
-
             let html = '<table class="log-table">';
             html += '<thead><tr>';
             html += '<th>Datum</th><th>Čas</th><th>Razdalja</th><th>Višina</th><th>Avg HR</th><th>Avg Moč</th><th>Občutek</th><th>Opombe</th><th>Akcije</th>';
             html += '</tr></thead><tbody>';
 
-            sorted.forEach(log => {
+            trainingLogs.forEach(log => {
                 const date = new Date(log.date);
                 const formatted = date.toLocaleDateString('sl-SI');
                 html += '<tr>';
@@ -1610,11 +1815,11 @@
                 html += `<td>${log.duration} min</td>`;
                 html += `<td>${log.distance || '-'} km</td>`;
                 html += `<td>${log.elevation || '-'} m</td>`;
-                html += `<td>${log.avgHr || '-'} BPM</td>`;
-                html += `<td>${log.avgPower || '-'} W</td>`;
-                html += `<td>${log.physicalFeeling || '-'} / ${log.generalFeeling || '-'}</td>`;
+                html += `<td>${log.avg_hr || '-'} BPM</td>`;
+                html += `<td>${log.avg_power || '-'} W</td>`;
+                html += `<td>${log.physical_feeling || '-'} / ${log.general_feeling || '-'}</td>`;
                 html += `<td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${log.notes || '-'}</td>`;
-                html += `<td><button class="delete-btn" onclick="deleteLog('${log.date}')">Izbriši</button></td>`;
+                html += `<td><button class="delete-btn" onclick="deleteLog('${log.id}')">Izbriši</button></td>`;
                 html += '</tr>';
             });
 
@@ -1624,11 +1829,14 @@
 
         function renderStats() {
             const totalTrainings = trainingLogs.length;
-            const totalMinutes = trainingLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0);
-            const totalKm = trainingLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0);
-            const totalElevation = trainingLogs.reduce((sum, log) => sum + parseInt(log.elevation || 0), 0);
+            const totalMinutes = trainingLogs.reduce((sum, log) => sum + (log.duration || 0), 0);
+            const totalKm = trainingLogs.reduce((sum, log) => sum + (parseFloat(log.distance) || 0), 0);
+            const totalElevation = trainingLogs.reduce((sum, log) => sum + (log.elevation || 0), 0);
 
-            const avgFeeling = trainingLogs.filter(l => l.generalFeeling).reduce((sum, log) => sum + parseInt(log.generalFeeling), 0) / trainingLogs.filter(l => l.generalFeeling).length || 0;
+            const feelingLogs = trainingLogs.filter(l => l.general_feeling);
+            const avgFeeling = feelingLogs.length > 0
+                ? feelingLogs.reduce((sum, log) => sum + log.general_feeling, 0) / feelingLogs.length
+                : 0;
 
             const totalPlanned = Object.keys(TRAINING_PLAN).filter(d => new Date(d) <= new Date()).length;
             const completionRate = totalPlanned > 0 ? (totalTrainings / totalPlanned * 100) : 0;
@@ -1662,41 +1870,125 @@
                 </div>
             `;
 
-            // Weekly stats
-            const now = new Date();
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay() + 1);
-            const weekLogs = trainingLogs.filter(l => new Date(l.date) >= weekStart);
-
-            html += `
-                <div class="training-info" style="margin-top: 20px;">
-                    <h3>📅 Ta Teden</h3>
-                    <div class="info-row">
-                        <span class="info-label">Treningov:</span>
-                        <span class="info-value">${weekLogs.length}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Skupaj ur:</span>
-                        <span class="info-value">${(weekLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0) / 60).toFixed(1)} h</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Skupaj km:</span>
-                        <span class="info-value">${weekLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0).toFixed(1)} km</span>
-                    </div>
-                </div>
-            `;
-
             document.getElementById('statsContent').innerHTML = html;
         }
 
         function updateStats() {
             const totalTrainings = trainingLogs.length;
-            const totalMinutes = trainingLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0);
-            const totalKm = trainingLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0);
+            const totalMinutes = trainingLogs.reduce((sum, log) => sum + (log.duration || 0), 0);
+            const totalKm = trainingLogs.reduce((sum, log) => sum + (parseFloat(log.distance) || 0), 0);
 
             document.getElementById('totalTrainings').textContent = totalTrainings;
             document.getElementById('totalHours').textContent = (totalMinutes / 60).toFixed(1) + 'h';
             document.getElementById('totalKm').textContent = totalKm.toFixed(1) + 'km';
+        }
+
+        // ========================================
+        // PROFILE MANAGEMENT
+        // ========================================
+        function renderProfile() {
+            if (!userProfile) return;
+
+            let html = `
+                <div class="training-info">
+                    <h3>👤 Osebni Podatki</h3>
+                    <form onsubmit="updateProfile(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Ime in priimek</label>
+                                <input type="text" name="fullName" value="${userProfile.full_name || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="${userProfile.email || ''}" disabled style="background: #f5f5f5;">
+                            </div>
+                            <div class="form-group">
+                                <label>Kraj bivanja</label>
+                                <input type="text" name="location" value="${userProfile.location || ''}" placeholder="npr. Zavrtec, Rovte">
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top: 30px; margin-bottom: 15px;">🚴 Nastavitve Aplikacij</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Priljubljena aplikacija za kolesarjenje</label>
+                                <select name="cyclingApp">
+                                    <option value="komoot" ${userProfile.cycling_app === 'komoot' ? 'selected' : ''}>Komoot</option>
+                                    <option value="strava" ${userProfile.cycling_app === 'strava' ? 'selected' : ''}>Strava</option>
+                                    <option value="ridewithgps" ${userProfile.cycling_app === 'ridewithgps' ? 'selected' : ''}>RideWithGPS</option>
+                                    <option value="garmin" ${userProfile.cycling_app === 'garmin' ? 'selected' : ''}>Garmin Connect</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Priljubljena aplikacija za indoor trening</label>
+                                <select name="indoorApp">
+                                    <option value="mywhoosh" ${userProfile.indoor_app === 'mywhoosh' ? 'selected' : ''}>MyWhoosh</option>
+                                    <option value="zwift" ${userProfile.indoor_app === 'zwift' ? 'selected' : ''}>Zwift</option>
+                                    <option value="trainerroad" ${userProfile.indoor_app === 'trainerroad' ? 'selected' : ''}>TrainerRoad</option>
+                                    <option value="rouvy" ${userProfile.indoor_app === 'rouvy' ? 'selected' : ''}>Rouvy</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary">💾 Shrani Spremembe</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 20px;">
+                    <strong>ℹ️ Opomba o nastavitvah aplikacij:</strong><br>
+                    Ko spremeniš priljubljeno aplikacijo, se bodo vsi linki v aplikaciji prilagodili.
+                    Poti in workouts bodo odpirali izbrano aplikacijo namesto privzete.
+                </div>
+            `;
+
+            document.getElementById('profileContent').innerHTML = html;
+        }
+
+        async function updateProfile(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const updates = {
+                full_name: formData.get('fullName'),
+                location: formData.get('location'),
+                cycling_app: formData.get('cyclingApp'),
+                indoor_app: formData.get('indoorApp')
+            };
+
+            const { error } = await supabase
+                .from('profiles')
+                .update(updates)
+                .eq('id', currentUser.id);
+
+            if (error) {
+                alert('Napaka pri shranjevanju: ' + error.message);
+                return;
+            }
+
+            userProfile = { ...userProfile, ...updates };
+            alert('✅ Profil uspešno posodobljen!');
+            updateUserInfo();
+            renderRoutes();
+            renderWorkouts();
+        }
+
+        // ========================================
+        // VIEW MANAGEMENT
+        // ========================================
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewName).classList.add('active');
+            event.target.classList.add('active');
+            currentView = viewName;
+
+            if (viewName === 'log') renderLog();
+            if (viewName === 'stats') renderStats();
+            if (viewName === 'profile') renderProfile();
         }
 
         // Close modal on outside click
@@ -1706,6 +1998,29 @@
                 closeModal();
             }
         }
+
+        // ========================================
+        // INITIALIZE APP
+        // ========================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check if Supabase credentials are configured
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                document.body.innerHTML = `
+                    <div class="auth-container">
+                        <h1>⚠️ Konfiguracija Potrebna</h1>
+                        <div class="alert alert-error">
+                            <strong>Supabase ni konfiguriran!</strong><br><br>
+                            Prosim, sledi navodilom v datoteki <strong>SUPABASE_SETUP_GUIDE.md</strong>
+                            za nastavitev Supabase projekta.<br><br>
+                            Ko dobiš API ključe, jih vstavi v datoteko <strong>index-supabase.html</strong>.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            await checkAuth();
+        });
     </script>
 </body>
 </html>
