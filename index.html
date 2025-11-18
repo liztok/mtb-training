@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTB Trening Plan U15 - Training Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c5aa0;
+            --primary-dark: #1a3d6b;
+            --primary-light: #4a7dc4;
+            --secondary: #e8f0f8;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --c1: #28a745;
+            --c2: #20c997;
+            --c3: #ffc107;
+            --c4: #fd7e14;
+            --c5: #dc3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: var(--secondary);
+            padding: 15px 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Calendar Styles */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        .calendar-header h2 {
+            color: var(--primary);
+            font-size: 22px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            padding: 8px 15px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .calendar-nav button:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            min-height: 100px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .calendar-day:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+            background: #f5f5f5;
+        }
+
+        .calendar-day.today {
+            border-color: var(--success);
+            border-width: 3px;
+            background: #e8f5e9;
+        }
+
+        .calendar-day.has-training {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+            border-color: var(--warning);
+        }
+
+        .calendar-day.completed {
+            background: linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%);
+            border-color: var(--success);
+        }
+
+        .day-number {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .day-training {
+            font-size: 11px;
+            padding: 4px;
+            background: rgba(44, 90, 160, 0.1);
+            border-radius: 4px;
+            margin: 2px 0;
+            color: var(--primary-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .day-training.karate {
+            background: rgba(255, 193, 7, 0.2);
+        }
+
+        .day-training.bike {
+            background: rgba(40, 167, 69, 0.2);
+        }
+
+        .day-training.gym {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        .day-training.rest {
+            background: rgba(108, 117, 125, 0.1);
+        }
+
+        /* Training Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: var(--danger);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .modal-header .date {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .training-info {
+            background: var(--secondary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .training-info h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .info-value {
+            color: var(--primary-dark);
+        }
+
+        .route-link, .workout-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .route-link:hover, .workout-link:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Training Log Form */
+        .log-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .log-form h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Training Log View */
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .log-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .log-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .log-table tr:hover {
+            background: var(--secondary);
+        }
+
+        .log-table .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .log-table .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .intensity-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .intensity-c1 { background: var(--c1); }
+        .intensity-c2 { background: var(--c2); }
+        .intensity-c3 { background: var(--c3); }
+        .intensity-c4 { background: var(--c4); }
+        .intensity-c5 { background: var(--c5); }
+
+        /* Routes View */
+        .routes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .route-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .route-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+        }
+
+        .route-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .route-details {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .route-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .route-detail .label {
+            font-size: 11px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .route-detail .value {
+            font-size: 16px;
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 18px;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-around;
+                margin-top: 10px;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .calendar-day {
+                min-height: 80px;
+                padding: 5px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .day-training {
+                font-size: 9px;
+                padding: 2px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .routes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .log-table {
+                font-size: 11px;
+            }
+
+            .log-table th,
+            .log-table td {
+                padding: 8px 5px;
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--primary) 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚵 MTB Trening Plan U15</h1>
+            <div class="header-stats">
+                <div class="stat-box">
+                    <div class="value" id="totalTrainings">0</div>
+                    <div class="label">Opravljenih treningov</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="totalHours">0h</div>
+                    <div class="label">Skupaj ur</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value" id="totalKm">0km</div>
+                    <div class="label">Skupaj km</div>
+                </div>
+            </div>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="showView('calendar')">📅 Koledar</button>
+            <button class="nav-btn" onclick="showView('routes')">🗺️ Poti</button>
+            <button class="nav-btn" onclick="showView('workouts')">🏠 MyWhoosh</button>
+            <button class="nav-btn" onclick="showView('log')">📝 Zgodovina</button>
+            <button class="nav-btn" onclick="showView('stats')">📊 Statistika</button>
+            <button class="nav-btn" onclick="showView('info')">ℹ️ Info</button>
+        </nav>
+
+        <div class="content">
+            <!-- Calendar View -->
+            <div id="calendar" class="view active">
+                <div class="calendar-header">
+                    <h2 id="currentMonth">November 2025</h2>
+                    <div class="calendar-nav">
+                        <button onclick="previousMonth()">← Prejšnji</button>
+                        <button onclick="today()">Danes</button>
+                        <button onclick="nextMonth()">Naslednji →</button>
+                    </div>
+                </div>
+                <div id="calendarGrid" class="calendar-grid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- Routes View -->
+            <div id="routes" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">🗺️ Kolesarske Poti</h2>
+                <div id="routesGrid" class="routes-grid">
+                    <!-- Routes will be generated here -->
+                </div>
+            </div>
+
+            <!-- Workouts View -->
+            <div id="workouts" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">🏠 MyWhoosh Workouts</h2>
+                <div id="workoutsGrid" class="routes-grid">
+                    <!-- Workouts will be generated here -->
+                </div>
+            </div>
+
+            <!-- Log View -->
+            <div id="log" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">📝 Zgodovina Treningov</h2>
+                <div id="logContent">
+                    <!-- Training log will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Stats View -->
+            <div id="stats" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">📊 Statistika</h2>
+                <div id="statsContent">
+                    <!-- Statistics will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Info View -->
+            <div id="info" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">ℹ️ Informacije</h2>
+                <div class="training-info">
+                    <h3>🎯 Intenzivnostne Cone</h3>
+                    <div class="info-row">
+                        <span class="info-label"><span class="intensity-badge intensity-c1">C1</span> Zelo lahko (60-70%)</span>
+                        <span class="info-value">124-145 BPM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><span class="intensity-badge intensity-c2">C2</span> Lahko (70-80%)</span>
+                        <span class="info-value">145-166 BPM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><span class="intensity-badge intensity-c3">C3</span> Zmerno (80-87%)</span>
+                        <span class="info-value">166-180 BPM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><span class="intensity-badge intensity-c4">C4</span> Težko (87-92%)</span>
+                        <span class="info-value">180-190 BPM</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><span class="intensity-badge intensity-c5">C5</span> Maksimalno (92%+)</span>
+                        <span class="info-value">190+ BPM</span>
+                    </div>
+                </div>
+
+                <div class="training-info" style="margin-top: 20px;">
+                    <h3>📅 Tedenski Okvir</h3>
+                    <p style="margin-bottom: 10px;">Obdobje: 18. november 2025 - 28. februar 2026 (15 tednov)</p>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Ponedeljek:</strong> Karate - gibljivost in koordinacija</li>
+                        <li><strong>Torek:</strong> Kolo - Težja vožnja 90-120 min (C2-C4)</li>
+                        <li><strong>Sreda:</strong> Karate - gibljivost in koordinacija</li>
+                        <li><strong>Četrtek:</strong> GYM (vsak 2. teden) / Trainer ali lahka vožnja</li>
+                        <li><strong>Petek:</strong> Počitek ali lahka aktivnost</li>
+                        <li><strong>Vikend:</strong> Daljša lahkotna vožnja 2-3.5h (C1-C2)</li>
+                    </ul>
+                </div>
+
+                <div class="training-info" style="margin-top: 20px;">
+                    <h3>⚠️ Varnostna opozorila</h3>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>Vedno nosi čelado in zaščitno opremo</li>
+                        <li>Pri slabih vremenskih razmerah prilagodi ali preskoči trening</li>
+                        <li>Če se počutiš zelo utrujenega, vzemi dodatni počitek</li>
+                        <li>Pri bolečinah ali poškodbah se posvetuj s trenerjem/zdravnikom</li>
+                        <li>Redno hidriraj in pravilno se prehranjuj</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Detail Modal -->
+    <div id="trainingModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="modal-header">
+                <h2 id="modalTitle">Trening</h2>
+                <div class="date" id="modalDate"></div>
+            </div>
+            <div id="modalBody">
+                <!-- Training details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Training Plan Data
+        const TRAINING_PLAN = {
+            // Week 1: Nov 18-24
+            '2025-11-18': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-11-19': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte-Logatec Loop', duration: '90-120 min', intensity: 'C2-C4', route: 1, intervals: '4x (2 min C4 + 3 min C2)' },
+            '2025-11-20': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-11-21': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica - moč, koordinacija, hitrost', duration: '105 min', intensity: null },
+            '2025-11-22': { type: 'rest', name: 'Počitek', description: 'Raztezanje 15-20 min ali lahka hoja', duration: '30-45 min', intensity: 'C1' },
+            '2025-11-23': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Izberi: Šmarna Gora / Polhov Gradec', duration: '2-2.5h', intensity: 'C1-C2', route: 5 },
+            '2025-11-24': { type: 'rest', name: 'Aktivni počitek', description: 'Družinski sprehod ali popoln počitek', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 2: Nov 25 - Dec 1
+            '2025-11-25': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-11-26': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Žibrše-Hotedršica Circuit', duration: '90-120 min', intensity: 'C2-C4', route: 2, intervals: '5x (3 min C4 + 3 min C2)' },
+            '2025-11-27': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-11-28': { type: 'trainer', name: 'TRAINER - MyWhoosh', description: 'Threshold Builder', duration: '50-60 min', intensity: 'C2-C3', workout: 6 },
+            '2025-11-29': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + lahek tek/hoja', duration: '30-40 min', intensity: 'C1' },
+            '2025-11-30': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Idrija Loop', duration: '2-2.5h', intensity: 'C2', route: 7 },
+            '2025-12-01': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod z družino', duration: '60-90 min', intensity: 'C1' },
+
+            // Week 3: Dec 2-8
+            '2025-12-02': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-03': { type: 'bike', name: 'KOLO - Težja vožnja', description: 'Rovte Trails - Tehnika', duration: '90-110 min', intensity: 'C2-C4', route: 3, intervals: '6x (2 min C4 + 2 min C2)' },
+            '2025-12-04': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-05': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2025-12-06': { type: 'rest', name: 'Počitek', description: 'Raztezanje 15 min', duration: '15 min', intensity: null },
+            '2025-12-07': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Bevke-Vrhnika Circuit', duration: '2-2.5h', intensity: 'C1-C2', route: 10 },
+            '2025-12-08': { type: 'rest', name: 'Aktivni počitek', description: 'Hoja v naravi', duration: '60 min', intensity: 'C1' },
+
+            // Week 4: Dec 9-15
+            '2025-12-09': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-10': { type: 'bike', name: 'KOLO - Intervali', description: 'Zavrtec intervalni krog', duration: '90-100 min', intensity: 'C2-C4', route: 4, intervals: '5x (3 min C4 + 3 min C2)' },
+            '2025-12-11': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-12': { type: 'trainer', name: 'TRAINER - MyWhoosh', description: 'Sweet Spot Training', duration: '45-50 min', intensity: 'C2-C3', workout: 7 },
+            '2025-12-13': { type: 'rest', name: 'Lahka aktivnost', description: 'Raztezanje + hoja', duration: '30-40 min', intensity: 'C1' },
+            '2025-12-14': { type: 'bike', name: 'KOLO - Daljša tura', description: 'Ljubljansko Barje loop', duration: '2.5-3h', intensity: 'C2', route: 9 },
+            '2025-12-15': { type: 'rest', name: 'Aktivni počitek', description: 'Družinska aktivnost', duration: '60-90 min', intensity: 'C1' },
+
+            // Continue with more weeks...
+            // Week 5: Dec 16-22
+            '2025-12-16': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-17': { type: 'bike', name: 'KOLO - TEST', description: 'Rovte-Logatec Loop - Preveri napredek!', duration: '90-120 min', intensity: 'C2-C3', route: 1, note: 'TEST NAPREDKA' },
+            '2025-12-18': { type: 'karate', name: 'Karate', description: 'Gibljivost, koordinacija', duration: '60-90 min', intensity: null },
+            '2025-12-19': { type: 'gym', name: 'GYM - Ekipni', description: 'Črni Vrh telovadnica', duration: '105 min', intensity: null },
+            '2025-12-20': { type: 'rest', name: 'Počitek', description: 'Raztezanje', duration: '15-20 min', intensity: null },
+            '2025-12-21': { type: 'bike', name: 'KOLO - Lahka tura', description: 'Lokalna vožnja Rovte', duration: '1.5-2h', intensity: 'C1-C2' },
+            '2025-12-22': { type: 'rest', name: 'Aktivni počitek', description: 'Lahka aktivnost', duration: '60 min', intensity: 'C1' },
+
+            // Week 6: Dec 23-29 (BOŽIČ - lažji)
+            '2025-12-23': { type: 'karate', name: 'Karate', description: 'Preveri urnik!', duration: '60-90 min', intensity: null, note: 'Božični teden' },
+            '2025-12-24': { type: 'bike', name: 'LAHKA vožnja', description: 'Kratek krog okoli Zavrtec', duration: '45-60 min', intensity: 'C1-C2' },
+            '2025-12-25': { type: 'rest', name: 'BOŽIČ', description: 'POČITEK', duration: '-', intensity: null },
+            '2025-12-26': { type: 'trainer', name: 'Trainer/outdoor', description: 'MyWhoosh Recovery Ride ali lahka vožnja', duration: '40-50 min', intensity: 'C1-C2', workout: 1 },
+            '2025-12-27': { type: 'rest', name: 'Po izbiri', description: 'Tek, hoja, kolo - kar te veseli', duration: '45-60 min', intensity: 'C1-C2' },
+            '2025-12-28': { type: 'bike', name: 'Družinska vožnja', description: 'Izberi vikend turo', duration: '2-2.5h', intensity: 'C1-C2' },
+            '2025-12-29': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod, igre', duration: '60 min', intensity: 'C1' },
+
+            // Week 7: Dec 30 - Jan 5 (NOVO LETO - lažji)
+            '2025-12-30': { type: 'karate', name: 'Karate', description: 'Preveri urnik!', duration: '60-90 min', intensity: null, note: 'Novoletni teden' },
+            '2025-12-31': { type: 'bike', name: 'LAHKA vožnja', description: 'Kratek trening pred silvestrom', duration: '45-60 min', intensity: 'C1-C2' },
+            '2026-01-01': { type: 'rest', name: 'NOVO LETO', description: 'POČITEK', duration: '-', intensity: null },
+            '2026-01-02': { type: 'bike', name: 'LAHKA vožnja', description: 'Outdoor ali trainer', duration: '45-60 min', intensity: 'C1-C2', workout: 1 },
+            '2026-01-03': { type: 'rest', name: 'Gibljivost', description: 'Raztezanje + lahka hoja', duration: '30-40 min', intensity: 'C1' },
+            '2026-01-04': { type: 'bike', name: 'KOLO - Tura', description: 'Srednje dolga tura', duration: '2-2.5h', intensity: 'C2' },
+            '2026-01-05': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod ali počitek', duration: '60 min', intensity: 'C1' },
+
+            // Add remaining weeks through Feb 28, 2026...
+            // Week 8-15 follow similar pattern
+        };
+
+        const ROUTES = {
+            1: {
+                name: 'Rovte - Logatec Loop',
+                distance: '25-30 km',
+                elevation: '400-500 m',
+                intensity: 'C2-C3, intervali C4',
+                type: 'Asfalt/makadam mix',
+                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=28000&elevation=450',
+                description: 'Glavni testni krog za merjenje napredka'
+            },
+            2: {
+                name: 'Žibrše - Hotedršica Circuit',
+                distance: '22-28 km',
+                elevation: '450-550 m',
+                intensity: 'C2-C3',
+                type: 'Mix asfalt/gozdne ceste',
+                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=25000&elevation=500',
+                description: 'Tehnično zahtevna pot z vzponi'
+            },
+            3: {
+                name: 'Rovte MTB Trails',
+                distance: '15-20 km',
+                elevation: '300-400 m',
+                intensity: 'C2-C3 + tehnika',
+                type: 'Single track, gozdne ceste',
+                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=18000&elevation=350',
+                description: 'Fokus na tehnične veščine'
+            },
+            4: {
+                name: 'Zavrtec - Intervalni krog',
+                distance: '18-22 km',
+                elevation: '350-450 m',
+                intensity: 'C2 + intervali C4-C5',
+                type: 'Mix terrain',
+                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=20000&elevation=400',
+                description: 'Strukturirani intervali za moč'
+            },
+            5: {
+                name: 'Šmarna Gora Loop',
+                distance: '25-35 km',
+                elevation: '400-600 m',
+                intensity: 'C1-C2',
+                type: 'Gozdne ceste, makadam',
+                link: 'https://www.komoot.com/plan/@46.0833,14.4664?sport=mtb&distance=30000&elevation=500',
+                description: 'Priljubljena vikend tura (Ljubljana 40-50 km)'
+            },
+            6: {
+                name: 'Polhograjski Dolomiti',
+                distance: '30-40 km',
+                elevation: '500-700 m',
+                intensity: 'C2',
+                type: 'Gozdne ceste',
+                link: 'https://www.komoot.com/plan/@46.0600,14.3000?sport=mtb&distance=35000&elevation=600',
+                description: 'Lahka tura v čudoviti okolici (Ljubljana 40-50 km)'
+            },
+            7: {
+                name: 'Idrija - Spodnja Idrija Loop',
+                distance: '28-35 km',
+                elevation: '450-550 m',
+                intensity: 'C1-C2',
+                type: 'Mix asfalt/makadam',
+                link: 'https://www.komoot.com/plan/@46.0000,13.9833?sport=mtb&distance=32000&elevation=500',
+                description: 'Raziskovanje Idrije (50-60 km vožnja)'
+            },
+            8: {
+                name: 'Postojnska Vrata',
+                distance: '20-30 km',
+                elevation: '300-400 m',
+                intensity: 'C1-C2',
+                type: 'Gozdne ceste, široki single tracki',
+                link: 'https://www.komoot.com/plan/@45.7764,14.2139?sport=mtb&distance=25000&elevation=350',
+                description: 'Družinska tura (30-40 km vožnja)'
+            },
+            9: {
+                name: 'Ljubljansko Barje Loop',
+                distance: '35-45 km',
+                elevation: '100-200 m',
+                intensity: 'C1-C2',
+                type: 'Makadam, asfalt (ravnina)',
+                link: 'https://www.komoot.com/plan/@45.9500,14.4500?sport=mtb&distance=40000&elevation=150',
+                description: 'Dolga lahka tura za vzdržljivost (20-30 km)'
+            },
+            10: {
+                name: 'Bevke - Borovnica - Vrhnika',
+                distance: '25-32 km',
+                elevation: '250-350 m',
+                intensity: 'C2',
+                type: 'Asfalt in gozdne ceste',
+                link: 'https://www.komoot.com/plan/@45.9700,14.3000?sport=mtb&distance=28000&elevation=300',
+                description: 'Lokalna tura blizu doma (20-30 km)'
+            }
+        };
+
+        const WORKOUTS = {
+            1: {
+                name: 'Flat Route - Recovery Ride',
+                duration: '45 min',
+                intensity: 'C1-C2',
+                power: '120-140W (2.4-2.8 W/kg)',
+                description: 'Ravninska pot za regeneracijo',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            2: {
+                name: 'Dubai Arena Loop',
+                duration: '50 min',
+                intensity: 'C1-C2',
+                power: '130-150W',
+                description: 'Lahka tura z minimalnimi vzponi',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            3: {
+                name: 'Desert Loop',
+                duration: '60 min',
+                intensity: 'C2-C3',
+                power: '140-170W',
+                description: 'Gradnja vzdržljivosti',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            4: {
+                name: 'France Route - Gentle Hills',
+                duration: '55 min',
+                intensity: 'C2-C3',
+                power: '145-175W',
+                description: 'Blagi vzponi, razvijanje moči',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            5: {
+                name: 'Yorkshire Loop',
+                duration: '75 min',
+                intensity: 'C2',
+                power: '135-160W',
+                description: 'Daljša vzdržljivostna vožnja',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            6: {
+                name: 'Threshold Builder',
+                duration: '50 min',
+                intensity: 'C2-C3 intervali',
+                power: '150-190W v intervalih',
+                description: '4x (5 min C3 + 3 min C2)',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            7: {
+                name: 'Sweet Spot Training',
+                duration: '45 min',
+                intensity: 'C3 intervali',
+                power: '155-185W',
+                description: '3x (8 min C3 + 4 min C2)',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            8: {
+                name: 'Tempo Intervals 45',
+                duration: '45 min',
+                intensity: 'C3 tempo',
+                power: '150-180W',
+                description: '6x (4 min C3 + 2 min C1)',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            9: {
+                name: 'Pyramid Workout',
+                duration: '50 min',
+                intensity: 'C3-C4 intervali',
+                power: '160-200W',
+                description: '2-4-6-4-2 min intervali',
+                link: 'https://www.mywhoosh.com/workout'
+            },
+            10: {
+                name: 'Makuri Islands Tour',
+                duration: '90 min',
+                intensity: 'C1-C2',
+                power: '130-155W',
+                description: 'Zelo dolga lahkotna vožnja',
+                link: 'https://www.mywhoosh.com/workout'
+            }
+        };
+
+        // State
+        let currentDate = new Date(2025, 10, 18); // Start from Nov 18, 2025
+        let trainingLogs = JSON.parse(localStorage.getItem('trainingLogs') || '[]');
+        let currentView = 'calendar';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCalendar();
+            renderRoutes();
+            renderWorkouts();
+            updateStats();
+            renderLog();
+        });
+
+        // View Management
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewName).classList.add('active');
+            event.target.classList.add('active');
+            currentView = viewName;
+
+            if (viewName === 'log') renderLog();
+            if (viewName === 'stats') renderStats();
+        }
+
+        // Calendar Functions
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ['Januar', 'Februar', 'Marec', 'April', 'Maj', 'Junij',
+                              'Julij', 'Avgust', 'September', 'Oktober', 'November', 'December'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0);
+
+            let startDay = firstDay.getDay();
+            if (startDay === 0) startDay = 7; // Sunday = 7
+            startDay--; // Monday = 0
+
+            const daysInMonth = lastDay.getDate();
+            const prevDaysInMonth = prevLastDay.getDate();
+
+            let html = '';
+
+            // Day headers
+            const dayNames = ['PON', 'TOR', 'SRE', 'ČET', 'PET', 'SOB', 'NED'];
+            dayNames.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            // Previous month days
+            for (let i = startDay - 1; i >= 0; i--) {
+                const day = prevDaysInMonth - i;
+                html += `<div class="calendar-day other-month"><div class="day-number">${day}</div></div>`;
+            }
+
+            // Current month days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const training = TRAINING_PLAN[dateStr];
+                const log = trainingLogs.find(l => l.date === dateStr);
+
+                let classes = 'calendar-day';
+                if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
+                    classes += ' today';
+                }
+                if (training) classes += ' has-training';
+                if (log) classes += ' completed';
+
+                html += `<div class="${classes}" onclick="openDay('${dateStr}')">`;
+                html += `<div class="day-number">${day}</div>`;
+
+                if (training) {
+                    html += `<div class="day-training ${training.type}">${training.name}</div>`;
+                    if (training.duration) {
+                        html += `<div class="day-training ${training.type}">${training.duration}</div>`;
+                    }
+                }
+
+                if (log) {
+                    html += `<div class="day-training" style="background: rgba(40, 167, 69, 0.3);">✓ Opravljeno</div>`;
+                }
+
+                html += '</div>';
+            }
+
+            // Next month days
+            const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
+            const nextDays = totalCells - (startDay + daysInMonth);
+            for (let i = 1; i <= nextDays; i++) {
+                html += `<div class="calendar-day other-month"><div class="day-number">${i}</div></div>`;
+            }
+
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function today() {
+            currentDate = new Date(2025, 10, 18); // Back to start
+            renderCalendar();
+        }
+
+        function openDay(dateStr) {
+            const training = TRAINING_PLAN[dateStr];
+            const log = trainingLogs.find(l => l.date === dateStr);
+
+            if (!training) {
+                alert('Ni načrtovanega treninga za ta dan.');
+                return;
+            }
+
+            const date = new Date(dateStr);
+            const dateFormatted = date.toLocaleDateString('sl-SI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            document.getElementById('modalTitle').textContent = training.name;
+            document.getElementById('modalDate').textContent = dateFormatted;
+
+            let html = '<div class="training-info">';
+            html += '<h3>📋 Podrobnosti Treninga</h3>';
+            html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${training.name}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${training.description}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Trajanje:</span><span class="info-value">${training.duration}</span></div>`;
+            if (training.intensity) {
+                html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value"><span class="intensity-badge intensity-${training.intensity.toLowerCase().replace('-', '')}">${training.intensity}</span></span></div>`;
+            }
+            if (training.intervals) {
+                html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
+            }
+            if (training.note) {
+                html += `<div class="info-row"><span class="info-label">Opomba:</span><span class="info-value" style="color: var(--warning); font-weight: bold;">${training.note}</span></div>`;
+            }
+            html += '</div>';
+
+            // Route or Workout link
+            if (training.route) {
+                const route = ROUTES[training.route];
+                html += '<div class="training-info">';
+                html += '<h3>🗺️ Predlagana Pot</h3>';
+                html += `<p><strong>${route.name}</strong></p>`;
+                html += `<p>Razdalja: ${route.distance} | Višina: ${route.elevation}</p>`;
+                html += `<p>${route.description}</p>`;
+                html += `<a href="${route.link}" target="_blank" class="route-link">📍 Odpri v Komoot</a>`;
+                html += '</div>';
+            }
+
+            if (training.workout) {
+                const workout = WORKOUTS[training.workout];
+                html += '<div class="training-info">';
+                html += '<h3>🏠 Predlagan Workout</h3>';
+                html += `<p><strong>${workout.name}</strong></p>`;
+                html += `<p>Trajanje: ${workout.duration} | Moč: ${workout.power}</p>`;
+                html += `<p>${workout.description}</p>`;
+                html += `<a href="${workout.link}" target="_blank" class="workout-link">🔗 Odpri MyWhoosh</a>`;
+                html += '</div>';
+            }
+
+            // Training log form
+            if (!log) {
+                html += renderLogForm(dateStr, training);
+            } else {
+                html += '<div class="alert alert-success">✓ Trening že zabeležen!</div>';
+                html += '<div class="training-info">';
+                html += '<h3>📊 Zabeleženi Podatki</h3>';
+                html += `<div class="info-row"><span class="info-label">Čas:</span><span class="info-value">${log.duration} min</span></div>`;
+                if (log.distance) html += `<div class="info-row"><span class="info-label">Razdalja:</span><span class="info-value">${log.distance} km</span></div>`;
+                if (log.elevation) html += `<div class="info-row"><span class="info-label">Višina:</span><span class="info-value">${log.elevation} m</span></div>`;
+                if (log.avgHr) html += `<div class="info-row"><span class="info-label">Avg HR:</span><span class="info-value">${log.avgHr} BPM</span></div>`;
+                if (log.avgPower) html += `<div class="info-row"><span class="info-label">Avg Power:</span><span class="info-value">${log.avgPower} W</span></div>`;
+                if (log.notes) html += `<div class="info-row"><span class="info-label">Opombe:</span><span class="info-value">${log.notes}</span></div>`;
+                html += `<button class="btn btn-secondary" style="margin-top: 15px;" onclick="deleteLog('${dateStr}')">Izbriši zapis</button>`;
+                html += '</div>';
+            }
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('trainingModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('trainingModal').classList.remove('active');
+        }
+
+        function renderLogForm(dateStr, training) {
+            return `
+                <div class="log-form">
+                    <h3>📝 Zabeleži Trening</h3>
+                    <form onsubmit="saveLog(event, '${dateStr}')">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Čas (min) *</label>
+                                <input type="number" name="duration" required min="1">
+                            </div>
+                            ${training.type === 'bike' || training.type === 'trainer' ? `
+                                <div class="form-group">
+                                    <label>Razdalja (km)</label>
+                                    <input type="number" name="distance" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Višinski metri (m)</label>
+                                    <input type="number" name="elevation">
+                                </div>
+                                <div class="form-group">
+                                    <label>Povprečna hitrost (km/h)</label>
+                                    <input type="number" name="avgSpeed" step="0.1">
+                                </div>
+                            ` : ''}
+                            <div class="form-group">
+                                <label>Povprečen pulz (BPM)</label>
+                                <input type="number" name="avgHr">
+                            </div>
+                            <div class="form-group">
+                                <label>Maksimalen pulz (BPM)</label>
+                                <input type="number" name="maxHr">
+                            </div>
+                            ${training.type === 'bike' || training.type === 'trainer' ? `
+                                <div class="form-group">
+                                    <label>Povprečna moč (W)</label>
+                                    <input type="number" name="avgPower">
+                                </div>
+                                <div class="form-group">
+                                    <label>Maksimalna moč (W)</label>
+                                    <input type="number" name="maxPower">
+                                </div>
+                            ` : ''}
+                            <div class="form-group">
+                                <label>Fizični občutek (1-10)</label>
+                                <input type="number" name="physicalFeeling" min="1" max="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Psihični občutek (1-10)</label>
+                                <input type="number" name="mentalFeeling" min="1" max="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Splošno počutje (1-10)</label>
+                                <input type="number" name="generalFeeling" min="1" max="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Vreme</label>
+                                <select name="weather">
+                                    <option value="">Izberi...</option>
+                                    <option value="sunny">Sončno</option>
+                                    <option value="cloudy">Oblačno</option>
+                                    <option value="rainy">Dežuje</option>
+                                    <option value="snowy">Sneži</option>
+                                    <option value="windy">Vetrovno</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Opombe</label>
+                            <textarea name="notes" placeholder="Kako si se počutil, kaj si se naučil, težave..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">💾 Shrani Trening</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        function saveLog(event, dateStr) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const log = {
+                date: dateStr,
+                duration: formData.get('duration'),
+                distance: formData.get('distance') || null,
+                elevation: formData.get('elevation') || null,
+                avgSpeed: formData.get('avgSpeed') || null,
+                avgHr: formData.get('avgHr') || null,
+                maxHr: formData.get('maxHr') || null,
+                avgPower: formData.get('avgPower') || null,
+                maxPower: formData.get('maxPower') || null,
+                physicalFeeling: formData.get('physicalFeeling') || null,
+                mentalFeeling: formData.get('mentalFeeling') || null,
+                generalFeeling: formData.get('generalFeeling') || null,
+                weather: formData.get('weather') || null,
+                notes: formData.get('notes') || null,
+                timestamp: new Date().toISOString()
+            };
+
+            trainingLogs.push(log);
+            localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
+
+            alert('✓ Trening uspešno zabeležen!');
+            closeModal();
+            renderCalendar();
+            updateStats();
+        }
+
+        function deleteLog(dateStr) {
+            if (confirm('Ali si prepričan, da želiš izbrisati ta zapis?')) {
+                trainingLogs = trainingLogs.filter(l => l.date !== dateStr);
+                localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
+                alert('Zapis izbrisan.');
+                closeModal();
+                renderCalendar();
+                updateStats();
+            }
+        }
+
+        function renderRoutes() {
+            let html = '';
+            for (let id in ROUTES) {
+                const route = ROUTES[id];
+                html += `
+                    <div class="route-card">
+                        <h3>${route.name}</h3>
+                        <div class="route-details">
+                            <div class="route-detail">
+                                <span class="label">Razdalja</span>
+                                <span class="value">${route.distance}</span>
+                            </div>
+                            <div class="route-detail">
+                                <span class="label">Višina</span>
+                                <span class="value">${route.elevation}</span>
+                            </div>
+                            <div class="route-detail">
+                                <span class="label">Intenzivnost</span>
+                                <span class="value">${route.intensity}</span>
+                            </div>
+                        </div>
+                        <p style="margin: 10px 0; color: #666;">${route.description}</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #999;"><strong>Tip:</strong> ${route.type}</p>
+                        <a href="${route.link}" target="_blank" class="route-link">📍 Odpri v Komoot</a>
+                    </div>
+                `;
+            }
+            document.getElementById('routesGrid').innerHTML = html;
+        }
+
+        function renderWorkouts() {
+            let html = '';
+            for (let id in WORKOUTS) {
+                const workout = WORKOUTS[id];
+                html += `
+                    <div class="route-card">
+                        <h3>${workout.name}</h3>
+                        <div class="route-details">
+                            <div class="route-detail">
+                                <span class="label">Trajanje</span>
+                                <span class="value">${workout.duration}</span>
+                            </div>
+                            <div class="route-detail">
+                                <span class="label">Intenzivnost</span>
+                                <span class="value">${workout.intensity}</span>
+                            </div>
+                            <div class="route-detail">
+                                <span class="label">Moč</span>
+                                <span class="value">${workout.power}</span>
+                            </div>
+                        </div>
+                        <p style="margin: 10px 0; color: #666;">${workout.description}</p>
+                        <a href="${workout.link}" target="_blank" class="workout-link">🔗 Odpri MyWhoosh</a>
+                    </div>
+                `;
+            }
+            document.getElementById('workoutsGrid').innerHTML = html;
+        }
+
+        function renderLog() {
+            if (trainingLogs.length === 0) {
+                document.getElementById('logContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>Še ni zabeleženih treningov</h3>
+                        <p>Ko boš opravil trening in ga zabeležil v koledarju, se bo prikazal tukaj.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sorted = [...trainingLogs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '<table class="log-table">';
+            html += '<thead><tr>';
+            html += '<th>Datum</th><th>Čas</th><th>Razdalja</th><th>Višina</th><th>Avg HR</th><th>Avg Moč</th><th>Občutek</th><th>Opombe</th><th>Akcije</th>';
+            html += '</tr></thead><tbody>';
+
+            sorted.forEach(log => {
+                const date = new Date(log.date);
+                const formatted = date.toLocaleDateString('sl-SI');
+                html += '<tr>';
+                html += `<td>${formatted}</td>`;
+                html += `<td>${log.duration} min</td>`;
+                html += `<td>${log.distance || '-'} km</td>`;
+                html += `<td>${log.elevation || '-'} m</td>`;
+                html += `<td>${log.avgHr || '-'} BPM</td>`;
+                html += `<td>${log.avgPower || '-'} W</td>`;
+                html += `<td>${log.physicalFeeling || '-'} / ${log.generalFeeling || '-'}</td>`;
+                html += `<td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${log.notes || '-'}</td>`;
+                html += `<td><button class="delete-btn" onclick="deleteLog('${log.date}')">Izbriši</button></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('logContent').innerHTML = html;
+        }
+
+        function renderStats() {
+            const totalTrainings = trainingLogs.length;
+            const totalMinutes = trainingLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0);
+            const totalKm = trainingLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0);
+            const totalElevation = trainingLogs.reduce((sum, log) => sum + parseInt(log.elevation || 0), 0);
+
+            const avgFeeling = trainingLogs.filter(l => l.generalFeeling).reduce((sum, log) => sum + parseInt(log.generalFeeling), 0) / trainingLogs.filter(l => l.generalFeeling).length || 0;
+
+            const totalPlanned = Object.keys(TRAINING_PLAN).filter(d => new Date(d) <= new Date()).length;
+            const completionRate = totalPlanned > 0 ? (totalTrainings / totalPlanned * 100) : 0;
+
+            let html = `
+                <div class="training-info">
+                    <h3>📊 Skupna Statistika</h3>
+                    <div class="info-row">
+                        <span class="info-label">Opravljenih treningov:</span>
+                        <span class="info-value">${totalTrainings} / ${totalPlanned} (${completionRate.toFixed(1)}%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${completionRate}%"></div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skupaj ur:</span>
+                        <span class="info-value">${(totalMinutes / 60).toFixed(1)} h</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skupaj kilometrov:</span>
+                        <span class="info-value">${totalKm.toFixed(1)} km</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skupaj višinskih metrov:</span>
+                        <span class="info-value">${totalElevation} m</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Povprečno počutje:</span>
+                        <span class="info-value">${avgFeeling.toFixed(1)} / 10</span>
+                    </div>
+                </div>
+            `;
+
+            // Weekly stats
+            const now = new Date();
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay() + 1);
+            const weekLogs = trainingLogs.filter(l => new Date(l.date) >= weekStart);
+
+            html += `
+                <div class="training-info" style="margin-top: 20px;">
+                    <h3>📅 Ta Teden</h3>
+                    <div class="info-row">
+                        <span class="info-label">Treningov:</span>
+                        <span class="info-value">${weekLogs.length}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skupaj ur:</span>
+                        <span class="info-value">${(weekLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0) / 60).toFixed(1)} h</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Skupaj km:</span>
+                        <span class="info-value">${weekLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0).toFixed(1)} km</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('statsContent').innerHTML = html;
+        }
+
+        function updateStats() {
+            const totalTrainings = trainingLogs.length;
+            const totalMinutes = trainingLogs.reduce((sum, log) => sum + parseInt(log.duration || 0), 0);
+            const totalKm = trainingLogs.reduce((sum, log) => sum + parseFloat(log.distance || 0), 0);
+
+            document.getElementById('totalTrainings').textContent = totalTrainings;
+            document.getElementById('totalHours').textContent = (totalMinutes / 60).toFixed(1) + 'h';
+            document.getElementById('totalKm').textContent = totalKm.toFixed(1) + 'km';
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('trainingModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
