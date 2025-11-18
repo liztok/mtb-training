@@ -1626,125 +1626,41 @@
             const gpxContent = generateGPX(routeId);
             const waypoints = route.waypoints;
 
-            // Create a data URL with an HTML page that auto-submits to Komoot
-            const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Importing ${route.name} to Komoot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .card {
-            background: white;
-            color: #333;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-        .btn {
-            display: inline-block;
-            padding: 15px 30px;
-            margin: 10px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            font-size: 16px;
-        }
-        .btn-primary { background: #ff6900; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .gpx-container {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            text-align: left;
-        }
-        .gpx-content {
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>🚀 ${route.name}</h1>
-        <p><strong>Razdalja:</strong> ${route.distance} | <strong>Višina:</strong> ${route.elevation}</p>
+            // Build HTML safely without nested template literals
+            const htmlParts = [];
+            htmlParts.push('<!DOCTYPE html><html><head><meta charset="UTF-8">');
+            htmlParts.push('<title>Importing to Komoot</title>');
+            htmlParts.push('<style>body{font-family:Arial,sans-serif;max-width:600px;margin:50px auto;padding:20px;text-align:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}');
+            htmlParts.push('.card{background:white;color:#333;padding:30px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}');
+            htmlParts.push('.btn{display:inline-block;padding:15px 30px;margin:10px;border-radius:8px;text-decoration:none;font-weight:bold;cursor:pointer;border:none;font-size:16px}');
+            htmlParts.push('.btn-primary{background:#ff6900;color:white}.btn-secondary{background:#6c757d;color:white}</style></head><body>');
+            htmlParts.push('<div class="card"><h1>🚀 ' + route.name.replace(/[<>"']/g, '') + '</h1>');
+            htmlParts.push('<p><strong>Razdalja:</strong> ' + route.distance + ' | <strong>Višina:</strong> ' + route.elevation + '</p>');
+            htmlParts.push('<h3>Import v Komoot</h3>');
+            htmlParts.push('<button class="btn btn-primary" onclick="downloadAndOpen()">📥 Prenesi GPX + Odpri Komoot</button>');
+            htmlParts.push('<button class="btn btn-secondary" onclick="copyGPX()">📋 Kopiraj GPX</button>');
+            htmlParts.push('<p style="margin-top:20px"><small>GPX vsebuje ' + waypoints.length + ' waypoint točk</small></p></div>');
+            htmlParts.push('<script>const gpxData=' + JSON.stringify(gpxContent) + ';');
+            htmlParts.push('const routeName=' + JSON.stringify(route.name.replace(/\s+/g, '_')) + ';');
+            htmlParts.push('function downloadAndOpen(){const blob=new Blob([gpxData],{type:"application/gpx+xml"});');
+            htmlParts.push('const url=URL.createObjectURL(blob);const a=document.createElement("a");');
+            htmlParts.push('a.href=url;a.download=routeName+".gpx";document.body.appendChild(a);a.click();');
+            htmlParts.push('document.body.removeChild(a);URL.revokeObjectURL(url);');
+            htmlParts.push('setTimeout(function(){window.open("https://www.komoot.com/plan","_blank");');
+            htmlParts.push('alert("✅ GPX prenesan!\\n✅ Komoot odprt!\\n\\nV Komoot:\\n→ Klikni Import Tour\\n→ Izberi "+routeName+".gpx");},500);}');
+            htmlParts.push('function copyGPX(){navigator.clipboard.writeText(gpxData).then(function(){alert("✅ GPX kopiran!");});}');
+            htmlParts.push('window.onload=function(){setTimeout(downloadAndOpen,1000);};</script></body></html>');
 
-        <h3>Izberi način importa:</h3>
-
-        <button class="btn btn-primary" onclick="downloadAndOpen()">
-            📥 Prenesi GPX + Odpri Komoot
-        </button>
-
-        <button class="btn btn-secondary" onclick="copyGPX()">
-            📋 Kopiraj GPX
-        </button>
-
-        <div class="gpx-container">
-            <div class="gpx-content" id="gpxContent">${gpxContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-        </div>
-
-        <p style="margin-top: 20px;">
-            <small>GPX vsebuje ${waypoints.length} waypoint točk za MTB pot.</small>
-        </p>
-    </div>
-
-    <script>
-        const gpxData = ${JSON.stringify(gpxContent)};
-        const routeName = ${JSON.stringify(route.name.replace(/\s+/g, '_'))};
-
-        function downloadAndOpen() {
-            // Download GPX
-            const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = routeName + '.gpx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            // Open Komoot
-            setTimeout(() => {
-                window.open('https://www.komoot.com/plan', '_blank');
-                alert('✅ GPX prenesan!\\n✅ Komoot odprt!\\n\\nV Komoot:\\n→ Klikni "Import Tour"\\n→ Izberi ' + routeName + '.gpx');
-            }, 500);
-        }
-
-        function copyGPX() {
-            navigator.clipboard.writeText(gpxData).then(() => {
-                alert('✅ GPX kopiran v clipboard!\\nPrilepi v Komoot ali drugo aplikacijo.');
-            });
-        }
-
-        // Auto-download on page load
-        window.onload = function() {
-            setTimeout(downloadAndOpen, 1000);
-        };
-    </script>
-</body>
-</html>`;
+            const htmlContent = htmlParts.join('');
 
             // Open in new window
             const newWindow = window.open('', '_blank');
-            newWindow.document.write(htmlContent);
-            newWindow.document.close();
+            if (newWindow) {
+                newWindow.document.write(htmlContent);
+                newWindow.document.close();
+            } else {
+                alert('Popup blocked! Please allow popups.');
+            }
         }
 
         function copyGPXToClipboard(routeId) {
