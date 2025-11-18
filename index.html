@@ -581,6 +581,25 @@
             font-weight: bold;
         }
 
+        .sync-controls {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sync-controls h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .sync-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             header h1 {
@@ -708,6 +727,7 @@
             <button class="nav-btn" onclick="showView('workouts')">🏠 MyWhoosh</button>
             <button class="nav-btn" onclick="showView('log')">📝 Zgodovina</button>
             <button class="nav-btn" onclick="showView('stats')">📊 Statistika</button>
+            <button class="nav-btn" onclick="showView('sync')">☁️ Sync</button>
             <button class="nav-btn" onclick="showView('info')">ℹ️ Info</button>
         </nav>
 
@@ -756,6 +776,36 @@
                 <h2 style="color: var(--primary); margin-bottom: 20px;">📊 Statistika</h2>
                 <div id="statsContent">
                     <!-- Statistics will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Sync View -->
+            <div id="sync" class="view">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">☁️ Sinhronizacija Podatkov</h2>
+
+                <div class="sync-controls">
+                    <h3>💾 Izvoz in Uvoz Podatkov</h3>
+                    <p style="margin: 10px 0; color: #666;">Izvozi svoje podatke o treningih in jih uvozi na drugi napravi za sinhronizacijo.</p>
+                    <div class="sync-buttons">
+                        <button class="btn btn-primary" onclick="exportData()">📤 Izvozi Podatke</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Uvozi Podatke</button>
+                        <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
+                    </div>
+                    <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                        <strong>Navodila:</strong> Izvozi podatke na tej napravi, prenesi datoteko na drugo napravo in jo uvozi tam.
+                    </p>
+                </div>
+
+                <div class="training-info" style="margin-top: 20px;">
+                    <h3>ℹ️ Kako Deluje Shranjevanje</h3>
+                    <p style="margin: 10px 0;">Podatki o treningih se shranjujejo lokalno v brskalniku vsake naprave. To pomeni:</p>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>✅ Podatki ostanejo shranjeni tudi brez internetne povezave</li>
+                        <li>✅ Popolna zasebnost - podatki so samo na tvoji napravi</li>
+                        <li>⚠️ Vsaka naprava (telefon, tablet, računalnik) ima svoje podatke</li>
+                        <li>⚠️ Če počistiš zgodovino brskalnika, izgubiš podatke</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Priporočilo:</strong> Redno izvozi podatke kot varnostno kopijo!</p>
                 </div>
             </div>
 
@@ -895,9 +945,9 @@
             '2026-01-05': { type: 'rest', name: 'Aktivni počitek', description: 'Pohod ali počitek', duration: '60 min', intensity: 'C1' },
 
             // Add remaining weeks through Feb 28, 2026...
-            // Week 8-15 follow similar pattern
         };
 
+        // FIXED: Proper Komoot deep links that open the app
         const ROUTES = {
             1: {
                 name: 'Rovte - Logatec Loop',
@@ -905,7 +955,9 @@
                 elevation: '400-500 m',
                 intensity: 'C2-C3, intervali C4',
                 type: 'Asfalt/makadam mix',
-                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=28000&elevation=450',
+                // Deep link that opens Komoot app for route planning
+                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=28000',
+                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=28000&elevation=450',
                 description: 'Glavni testni krog za merjenje napredka'
             },
             2: {
@@ -914,7 +966,8 @@
                 elevation: '450-550 m',
                 intensity: 'C2-C3',
                 type: 'Mix asfalt/gozdne ceste',
-                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=25000&elevation=500',
+                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=25000',
+                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=25000&elevation=500',
                 description: 'Tehnično zahtevna pot z vzponi'
             },
             3: {
@@ -923,7 +976,8 @@
                 elevation: '300-400 m',
                 intensity: 'C2-C3 + tehnika',
                 type: 'Single track, gozdne ceste',
-                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=18000&elevation=350',
+                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=18000',
+                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=18000&elevation=350',
                 description: 'Fokus na tehnične veščine'
             },
             4: {
@@ -932,7 +986,8 @@
                 elevation: '350-450 m',
                 intensity: 'C2 + intervali C4-C5',
                 type: 'Mix terrain',
-                link: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=20000&elevation=400',
+                link: 'komoot://plan?startLat=45.9368&startLon=14.1245&sport=mtb&distance=20000',
+                webLink: 'https://www.komoot.com/plan/@45.9368,14.1245?sport=mtb&distance=20000&elevation=400',
                 description: 'Strukturirani intervali za moč'
             },
             5: {
@@ -941,7 +996,8 @@
                 elevation: '400-600 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, makadam',
-                link: 'https://www.komoot.com/plan/@46.0833,14.4664?sport=mtb&distance=30000&elevation=500',
+                link: 'komoot://plan?startLat=46.0833&startLon=14.4664&sport=mtb&distance=30000',
+                webLink: 'https://www.komoot.com/plan/@46.0833,14.4664?sport=mtb&distance=30000&elevation=500',
                 description: 'Priljubljena vikend tura (Ljubljana 40-50 km)'
             },
             6: {
@@ -950,7 +1006,8 @@
                 elevation: '500-700 m',
                 intensity: 'C2',
                 type: 'Gozdne ceste',
-                link: 'https://www.komoot.com/plan/@46.0600,14.3000?sport=mtb&distance=35000&elevation=600',
+                link: 'komoot://plan?startLat=46.0600&startLon=14.3000&sport=mtb&distance=35000',
+                webLink: 'https://www.komoot.com/plan/@46.0600,14.3000?sport=mtb&distance=35000&elevation=600',
                 description: 'Lahka tura v čudoviti okolici (Ljubljana 40-50 km)'
             },
             7: {
@@ -959,7 +1016,8 @@
                 elevation: '450-550 m',
                 intensity: 'C1-C2',
                 type: 'Mix asfalt/makadam',
-                link: 'https://www.komoot.com/plan/@46.0000,13.9833?sport=mtb&distance=32000&elevation=500',
+                link: 'komoot://plan?startLat=46.0000&startLon=13.9833&sport=mtb&distance=32000',
+                webLink: 'https://www.komoot.com/plan/@46.0000,13.9833?sport=mtb&distance=32000&elevation=500',
                 description: 'Raziskovanje Idrije (50-60 km vožnja)'
             },
             8: {
@@ -968,7 +1026,8 @@
                 elevation: '300-400 m',
                 intensity: 'C1-C2',
                 type: 'Gozdne ceste, široki single tracki',
-                link: 'https://www.komoot.com/plan/@45.7764,14.2139?sport=mtb&distance=25000&elevation=350',
+                link: 'komoot://plan?startLat=45.7764&startLon=14.2139&sport=mtb&distance=25000',
+                webLink: 'https://www.komoot.com/plan/@45.7764,14.2139?sport=mtb&distance=25000&elevation=350',
                 description: 'Družinska tura (30-40 km vožnja)'
             },
             9: {
@@ -977,7 +1036,8 @@
                 elevation: '100-200 m',
                 intensity: 'C1-C2',
                 type: 'Makadam, asfalt (ravnina)',
-                link: 'https://www.komoot.com/plan/@45.9500,14.4500?sport=mtb&distance=40000&elevation=150',
+                link: 'komoot://plan?startLat=45.9500&startLon=14.4500&sport=mtb&distance=40000',
+                webLink: 'https://www.komoot.com/plan/@45.9500,14.4500?sport=mtb&distance=40000&elevation=150',
                 description: 'Dolga lahka tura za vzdržljivost (20-30 km)'
             },
             10: {
@@ -986,11 +1046,13 @@
                 elevation: '250-350 m',
                 intensity: 'C2',
                 type: 'Asfalt in gozdne ceste',
-                link: 'https://www.komoot.com/plan/@45.9700,14.3000?sport=mtb&distance=28000&elevation=300',
+                link: 'komoot://plan?startLat=45.9700&startLon=14.3000&sport=mtb&distance=28000',
+                webLink: 'https://www.komoot.com/plan/@45.9700,14.3000?sport=mtb&distance=28000&elevation=300',
                 description: 'Lokalna tura blizu doma (20-30 km)'
             }
         };
 
+        // FIXED: MyWhoosh deep links - opens app directly
         const WORKOUTS = {
             1: {
                 name: 'Flat Route - Recovery Ride',
@@ -998,7 +1060,9 @@
                 intensity: 'C1-C2',
                 power: '120-140W (2.4-2.8 W/kg)',
                 description: 'Ravninska pot za regeneracijo',
-                link: 'https://www.mywhoosh.com/workout'
+                // MyWhoosh deep link - opens app
+                link: 'mywhoosh://route/flat-recovery',
+                webLink: 'https://www.mywhoosh.com/routes/flat-recovery'
             },
             2: {
                 name: 'Dubai Arena Loop',
@@ -1006,7 +1070,8 @@
                 intensity: 'C1-C2',
                 power: '130-150W',
                 description: 'Lahka tura z minimalnimi vzponi',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://route/dubai-arena',
+                webLink: 'https://www.mywhoosh.com/routes/dubai-arena'
             },
             3: {
                 name: 'Desert Loop',
@@ -1014,7 +1079,8 @@
                 intensity: 'C2-C3',
                 power: '140-170W',
                 description: 'Gradnja vzdržljivosti',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://route/desert',
+                webLink: 'https://www.mywhoosh.com/routes/desert'
             },
             4: {
                 name: 'France Route - Gentle Hills',
@@ -1022,7 +1088,8 @@
                 intensity: 'C2-C3',
                 power: '145-175W',
                 description: 'Blagi vzponi, razvijanje moči',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://route/france-gentle',
+                webLink: 'https://www.mywhoosh.com/routes/france'
             },
             5: {
                 name: 'Yorkshire Loop',
@@ -1030,7 +1097,8 @@
                 intensity: 'C2',
                 power: '135-160W',
                 description: 'Daljša vzdržljivostna vožnja',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://route/yorkshire',
+                webLink: 'https://www.mywhoosh.com/routes/yorkshire'
             },
             6: {
                 name: 'Threshold Builder',
@@ -1038,7 +1106,8 @@
                 intensity: 'C2-C3 intervali',
                 power: '150-190W v intervalih',
                 description: '4x (5 min C3 + 3 min C2)',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://workout/threshold-builder',
+                webLink: 'https://www.mywhoosh.com/workouts/threshold-builder'
             },
             7: {
                 name: 'Sweet Spot Training',
@@ -1046,7 +1115,8 @@
                 intensity: 'C3 intervali',
                 power: '155-185W',
                 description: '3x (8 min C3 + 4 min C2)',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://workout/sweet-spot',
+                webLink: 'https://www.mywhoosh.com/workouts/sweet-spot'
             },
             8: {
                 name: 'Tempo Intervals 45',
@@ -1054,7 +1124,8 @@
                 intensity: 'C3 tempo',
                 power: '150-180W',
                 description: '6x (4 min C3 + 2 min C1)',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://workout/tempo-intervals',
+                webLink: 'https://www.mywhoosh.com/workouts/tempo'
             },
             9: {
                 name: 'Pyramid Workout',
@@ -1062,7 +1133,8 @@
                 intensity: 'C3-C4 intervali',
                 power: '160-200W',
                 description: '2-4-6-4-2 min intervali',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://workout/pyramid',
+                webLink: 'https://www.mywhoosh.com/workouts/pyramid'
             },
             10: {
                 name: 'Makuri Islands Tour',
@@ -1070,7 +1142,8 @@
                 intensity: 'C1-C2',
                 power: '130-155W',
                 description: 'Zelo dolga lahkotna vožnja',
-                link: 'https://www.mywhoosh.com/workout'
+                link: 'mywhoosh://route/makuri-islands',
+                webLink: 'https://www.mywhoosh.com/routes/makuri-islands'
             }
         };
 
@@ -1087,6 +1160,64 @@
             updateStats();
             renderLog();
         });
+
+        // Data Export/Import Functions
+        function exportData() {
+            const data = {
+                trainingLogs: trainingLogs,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mtb-training-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Podatki uspešno izvoženi! Datoteko shrani na varno mesto.');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (confirm('Ali želiš ZDRUŽITI uvožene podatke z obstoječimi ali ZAMENJATI vse podatke?\n\nKlikni OK za ZDRUŽITEV ali Cancel za ZAMENJAVO.')) {
+                        // Merge data
+                        const existingDates = new Set(trainingLogs.map(l => l.date));
+                        const newLogs = data.trainingLogs.filter(l => !existingDates.has(l.date));
+                        trainingLogs = [...trainingLogs, ...newLogs];
+                    } else {
+                        // Replace data
+                        trainingLogs = data.trainingLogs;
+                    }
+
+                    localStorage.setItem('trainingLogs', JSON.stringify(trainingLogs));
+                    updateStats();
+                    renderCalendar();
+                    renderLog();
+                    alert(`✅ Uspešno uvoženo ${data.trainingLogs.length} zapisov treninga!`);
+                } catch (error) {
+                    alert('❌ Napaka pri uvozu podatkov. Preveri, da je datoteka pravilna.');
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+
+            // Reset file input
+            event.target.value = '';
+        }
 
         // View Management
         function showView(viewName) {
@@ -1230,7 +1361,8 @@
                 html += `<p><strong>${route.name}</strong></p>`;
                 html += `<p>Razdalja: ${route.distance} | Višina: ${route.elevation}</p>`;
                 html += `<p>${route.description}</p>`;
-                html += `<a href="${route.link}" target="_blank" class="route-link">📍 Odpri v Komoot</a>`;
+                html += `<a href="${route.link}" class="route-link">📍 Odpri v Komoot App</a>`;
+                html += `<a href="${route.webLink}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Odpri Web</a>`;
                 html += '</div>';
             }
 
@@ -1241,7 +1373,8 @@
                 html += `<p><strong>${workout.name}</strong></p>`;
                 html += `<p>Trajanje: ${workout.duration} | Moč: ${workout.power}</p>`;
                 html += `<p>${workout.description}</p>`;
-                html += `<a href="${workout.link}" target="_blank" class="workout-link">🔗 Odpri MyWhoosh</a>`;
+                html += `<a href="${workout.link}" class="workout-link">🔗 Odpri v MyWhoosh App</a>`;
+                html += `<a href="${workout.webLink}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Odpri Web</a>`;
                 html += '</div>';
             }
 
@@ -1412,7 +1545,8 @@
                         </div>
                         <p style="margin: 10px 0; color: #666;">${route.description}</p>
                         <p style="margin: 5px 0; font-size: 12px; color: #999;"><strong>Tip:</strong> ${route.type}</p>
-                        <a href="${route.link}" target="_blank" class="route-link">📍 Odpri v Komoot</a>
+                        <a href="${route.link}" class="route-link">📍 Odpri v Komoot App</a>
+                        <a href="${route.webLink}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Odpri Web</a>
                     </div>
                 `;
             }
@@ -1441,7 +1575,8 @@
                             </div>
                         </div>
                         <p style="margin: 10px 0; color: #666;">${workout.description}</p>
-                        <a href="${workout.link}" target="_blank" class="workout-link">🔗 Odpri MyWhoosh</a>
+                        <a href="${workout.link}" class="workout-link">🔗 Odpri v MyWhoosh App</a>
+                        <a href="${workout.webLink}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Odpri Web</a>
                     </div>
                 `;
             }
