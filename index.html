@@ -1649,7 +1649,7 @@
             htmlParts.push('setTimeout(function(){window.open("https://www.komoot.com/plan","_blank");');
             htmlParts.push('alert("✅ GPX prenesan!\\n✅ Komoot odprt!\\n\\nV Komoot:\\n→ Klikni Import Tour\\n→ Izberi "+routeName+".gpx");},500);}');
             htmlParts.push('function copyGPX(){navigator.clipboard.writeText(gpxData).then(function(){alert("✅ GPX kopiran!");});}');
-            htmlParts.push('window.onload=function(){setTimeout(downloadAndOpen,1000);};</script></body></html>');
+            htmlParts.push('window.onload=function(){setTimeout(downloadAndOpen,1000);};<\/script></body></html>');
 
             const htmlContent = htmlParts.join('');
 
