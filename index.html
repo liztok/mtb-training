@@ -1874,14 +1874,16 @@
         }
 
         function getTrainingForDate(dateStr) {
-            // Check if this date is deleted
+            // Get all custom events for this date
+            const customAdds = customEvents.filter(e => e.date === dateStr && e.action === 'add');
             const deleted = customEvents.find(e => e.date === dateStr && e.action === 'delete');
-            if (deleted) return null;
 
-            // Check if there's a custom event for this date
-            const custom = customEvents.find(e => e.date === dateStr && e.action === 'add');
-            if (custom) {
-                return {
+            let events = [];
+
+            // Add custom events (sorted by event_order)
+            customAdds.sort((a, b) => (a.event_order || 1) - (b.event_order || 1));
+            customAdds.forEach(custom => {
+                events.push({
                     type: custom.type,
                     name: custom.name,
                     description: custom.description,
@@ -1889,12 +1891,25 @@
                     intensity: custom.intensity,
                     route: custom.route,
                     workout: custom.workout,
-                    intervals: custom.intervals
-                };
+                    intervals: custom.intervals,
+                    isCustom: true,
+                    eventId: custom.id
+                });
+            });
+
+            // Add base plan if not deleted and if we have room (max 3 events)
+            if (!deleted && events.length < 3) {
+                const basePlan = TRAINING_PLAN[dateStr];
+                if (basePlan) {
+                    events.push({
+                        ...basePlan,
+                        isCustom: false
+                    });
+                }
             }
 
-            // Return base plan
-            return TRAINING_PLAN[dateStr] || null;
+            // Return array of events (up to 3)
+            return events.slice(0, 3);
         }
 
         async function deleteTrainingDay(dateStr) {
@@ -1922,6 +1937,27 @@
             await loadCustomEvents();
             closeModal();
             renderCalendar();
+        }
+
+        async function deleteCustomEvent(eventId, dateStr) {
+            if (!confirm('Ali si prepričan, da želiš odstraniti ta trening?')) return;
+
+            const { error } = await supabase
+                .from('custom_training_events')
+                .delete()
+                .eq('id', eventId);
+
+            if (error) {
+                alert('Napaka: ' + error.message);
+                return;
+            }
+
+            await loadCustomEvents();
+            closeModal();
+            renderCalendar();
+
+            // Reopen the day to show updated events
+            setTimeout(() => openDay(dateStr), 100);
         }
 
         function showAddTrainingForm(dateStr) {
@@ -2043,6 +2079,16 @@
             const form = event.target;
             const formData = new FormData(form);
 
+            // Calculate next event_order for this date
+            const existingEvents = customEvents.filter(e => e.date === dateStr && e.action === 'add');
+            const nextOrder = existingEvents.length > 0 ? Math.max(...existingEvents.map(e => e.event_order || 1)) + 1 : 1;
+
+            // Check if we already have 3 events
+            if (existingEvents.length >= 3) {
+                alert('Napaka: Lahko dodaš največ 3 treninge na en dan!');
+                return;
+            }
+
             const customEvent = {
                 user_id: currentUser.id,
                 date: dateStr,
@@ -2054,14 +2100,13 @@
                 intensity: formData.get('intensity') || null,
                 route: formData.get('route') ? parseInt(formData.get('route')) : null,
                 workout: formData.get('workout') ? parseInt(formData.get('workout')) : null,
-                intervals: formData.get('intervals') || null
+                intervals: formData.get('intervals') || null,
+                event_order: nextOrder
             };
 
             const { error } = await supabase
                 .from('custom_training_events')
-                .upsert(customEvent, {
-                    onConflict: 'user_id,date,action'
-                });
+                .insert([customEvent]);
 
             if (error) {
                 if (error.code === '42P01') {
@@ -2138,28 +2183,35 @@
             const today = new Date();
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const training = getTrainingForDate(dateStr);
+                const events = getTrainingForDate(dateStr);
                 const log = trainingLogs.find(l => l.date === dateStr);
 
                 let classes = 'calendar-day';
                 if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
                     classes += ' today';
                 }
-                if (training) classes += ' has-training';
+                if (events && events.length > 0) classes += ' has-training';
                 if (log) classes += ' completed';
 
                 html += `<div class="${classes}" onclick="openDay('${dateStr}')">`;
                 html += `<div class="day-number">${day}</div>`;
 
-                if (training) {
-                    html += `<div class="day-training ${training.type}">${training.name}</div>`;
-                    if (training.duration) {
-                        html += `<div class="day-training ${training.type}">${training.duration}</div>`;
+                // Display up to 3 events
+                if (events && events.length > 0) {
+                    events.forEach((training, index) => {
+                        if (index < 3) {
+                            // Shorter display for multiple events
+                            const displayName = events.length > 1 ? training.name.substring(0, 15) : training.name;
+                            html += `<div class="day-training ${training.type}" style="font-size: ${events.length > 1 ? '10px' : '11px'}; padding: 2px 4px;">${displayName}${training.name.length > 15 && events.length > 1 ? '...' : ''}</div>`;
+                        }
+                    });
+                    if (events.length > 3) {
+                        html += `<div class="day-training" style="background: #6c757d; font-size: 9px;">+${events.length - 3} več</div>`;
                     }
                 }
 
                 if (log) {
-                    html += `<div class="day-training" style="background: rgba(40, 167, 69, 0.3);">✓ Opravljeno</div>`;
+                    html += `<div class="day-training" style="background: rgba(40, 167, 69, 0.3); font-size: 10px;">✓ Opravljeno</div>`;
                 }
 
                 html += '</div>';
@@ -2190,13 +2242,13 @@
         }
 
         function openDay(dateStr) {
-            const training = getTrainingForDate(dateStr);
+            const events = getTrainingForDate(dateStr);
             const log = trainingLogs.find(l => l.date === dateStr);
 
             const hasBaseTraining = TRAINING_PLAN[dateStr] !== undefined;
 
-            // If no training and no log, show option to add custom training
-            if (!training && !log) {
+            // If no events and no log, show option to add custom training
+            if ((!events || events.length === 0) && !log) {
                 showAddTrainingForm(dateStr);
                 return;
             }
@@ -2204,60 +2256,68 @@
             const date = new Date(dateStr);
             const dateFormatted = date.toLocaleDateString('sl-SI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-            document.getElementById('modalTitle').textContent = training ? training.name : 'Trening';
-            document.getElementById('modalDate').textContent = dateFormatted;
+            document.getElementById('modalTitle').textContent = events && events.length > 0 ? `${events[0].name}` : 'Trening';
+            document.getElementById('modalDate').textContent = dateFormatted + (events && events.length > 1 ? ` (${events.length} treningov)` : '');
 
             let html = '';
 
-            // Show training details if training exists
-            if (training) {
-                html += '<div class="training-info">';
-                html += '<h3>📋 Podrobnosti Treninga</h3>';
-                html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${training.name}</span></div>`;
-                html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${training.description}</span></div>`;
-                html += `<div class="info-row"><span class="info-label">Trajanje:</span><span class="info-value">${training.duration}</span></div>`;
-                if (training.intensity) {
-                    html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value"><span class="intensity-badge intensity-${training.intensity.toLowerCase().replace('-', '')}">${training.intensity}</span></span></div>`;
-                }
-                if (training.intervals) {
-                    html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
-                }
-                html += '</div>';
-            }
+            // Show all events for this day
+            if (events && events.length > 0) {
+                events.forEach((training, index) => {
+                    html += `<div class="training-info" style="border: 2px solid ${index === 0 ? '#2c5aa0' : '#ccc'}; margin-bottom: 15px;">`;
+                    html += `<h3>📋 Trening ${events.length > 1 ? (index + 1) + '/' + events.length : ''}</h3>`;
+                    html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${training.name}</span></div>`;
+                    html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${training.description || '-'}</span></div>`;
+                    html += `<div class="info-row"><span class="info-label">Trajanje:</span><span class="info-value">${training.duration}</span></div>`;
+                    if (training.intensity) {
+                        html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value"><span class="intensity-badge intensity-${training.intensity.toLowerCase().replace('-', '')}">${training.intensity}</span></span></div>`;
+                    }
+                    if (training.intervals) {
+                        html += `<div class="info-row"><span class="info-label">Intervali:</span><span class="info-value">${training.intervals}</span></div>`;
+                    }
 
-            // Route links based on user preference
-            if (training.route && userProfile) {
-                const route = ROUTES_DATA[training.route];
-                const links = getRouteLink(training.route, userProfile.cycling_app);
-                html += '<div class="training-info">';
-                html += '<h3>🗺️ Predlagana Pot</h3>';
-                html += `<p><strong>${route.name}</strong></p>`;
-                html += `<p>Razdalja: ${route.distance} | Višina: ${route.elevation}</p>`;
-                html += `<p>${route.description}</p>`;
-                html += `<a href="${links.app}" class="route-link">📍 Odpri v ${userProfile.cycling_app.charAt(0).toUpperCase() + userProfile.cycling_app.slice(1)}</a>`;
-                html += `<a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web verzija</a>`;
-                html += `<button onclick="downloadGPX(${training.route})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 GPX</button>`;
-                html += `<button onclick="quickKomootImport(${training.route})" class="route-link" style="background: #ff6900; border: none; cursor: pointer;">🚀 Komoot Import</button>`;
-                html += '</div>';
-            }
+                    // Route links
+                    if (training.route && userProfile) {
+                        const route = ROUTES_DATA[training.route];
+                        if (route) {
+                            const links = getRouteLink(training.route, userProfile.cycling_app);
+                            html += '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;">';
+                            html += '<h4 style="margin-bottom: 8px;">🗺️ Predlagana Pot</h4>';
+                            html += `<p style="margin: 5px 0;"><strong>${route.name}</strong></p>`;
+                            html += `<p style="margin: 5px 0; font-size: 13px;">${route.distance} | ${route.elevation}</p>`;
+                            html += `<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">`;
+                            html += `<a href="${links.app}" class="route-link" style="font-size: 12px; padding: 6px 10px;">📍 ${userProfile.cycling_app.charAt(0).toUpperCase() + userProfile.cycling_app.slice(1)}</a>`;
+                            html += `<button onclick="downloadGPX(${training.route})" class="route-link" style="background: #28a745; font-size: 12px; padding: 6px 10px;">📥 GPX</button>`;
+                            html += `</div></div>`;
+                        }
+                    }
 
-            // Workout links based on user preference
-            if (training.workout && userProfile) {
-                const workout = WORKOUTS_DATA[training.workout];
-                const links = getWorkoutLink(training.workout, userProfile.indoor_app);
-                html += '<div class="training-info">';
-                html += '<h3>🏠 Predlagan Workout</h3>';
-                html += `<p><strong>${workout.name}</strong></p>`;
-                html += `<p>Trajanje: ${workout.duration} | Moč: ${workout.power}</p>`;
-                html += `<p>${workout.description}</p>`;
-                html += `<a href="${links.app}" class="workout-link">🔗 Odpri v ${userProfile.indoor_app.charAt(0).toUpperCase() + userProfile.indoor_app.slice(1)}</a>`;
-                html += `<a href="${links.web}" target="_blank" class="workout-link" style="background: #6c757d;">🌐 Web verzija</a>`;
-                html += '</div>';
+                    // Workout links
+                    if (training.workout && userProfile) {
+                        const workout = WORKOUTS_DATA[training.workout];
+                        if (workout) {
+                            const links = getWorkoutLink(training.workout, userProfile.indoor_app);
+                            html += '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;">';
+                            html += '<h4 style="margin-bottom: 8px;">🏠 Predlagan Workout</h4>';
+                            html += `<p style="margin: 5px 0;"><strong>${workout.name}</strong></p>`;
+                            html += `<p style="margin: 5px 0; font-size: 13px;">${workout.duration} | ${workout.power}</p>`;
+                            html += `<a href="${links.app}" class="workout-link" style="font-size: 12px; padding: 6px 10px;">🔗 ${userProfile.indoor_app.charAt(0).toUpperCase() + userProfile.indoor_app.slice(1)}</a>`;
+                            html += '</div>';
+                        }
+                    }
+
+                    // Delete button for custom events
+                    if (training.isCustom && training.eventId) {
+                        html += `<div style="margin-top: 10px;"><button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" onclick="deleteCustomEvent('${training.eventId}', '${dateStr}')">🗑️ Odstrani ta trening</button></div>`;
+                    }
+
+                    html += '</div>';
+                });
             }
 
             // Training log form or display
             if (!log) {
-                html += renderLogForm(dateStr, training);
+                html += renderLogForm(dateStr, events && events.length > 0 ? events[0] : null);
             } else {
                 html += '<div class="alert alert-success">✓ Trening že zabeležen!</div>';
                 html += '<div class="training-info">';
@@ -2273,16 +2333,16 @@
             }
 
             // Add delete training button if this is a base plan training
-            if (hasBaseTraining && training) {
+            if (hasBaseTraining && events && events.length > 0 && !events[0].isCustom) {
                 html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">';
-                html += `<button class="btn btn-danger" onclick="deleteTrainingDay('${dateStr}')">🗑️ Izbriši ta trening iz urnika</button>`;
+                html += `<button class="btn btn-danger" onclick="deleteTrainingDay('${dateStr}')">🗑️ Skrij osnovni trening iz urnika</button>`;
                 html += '</div>';
             }
 
-            // Add button to replace with custom training
-            if (training) {
+            // Add button to add more trainings (if less than 3)
+            if (!events || events.length < 3) {
                 html += '<div style="margin-top: 15px;">';
-                html += `<button class="btn btn-primary" onclick="closeModal(); setTimeout(() => showAddTrainingForm('${dateStr}'), 100);">✏️ Spremeni v drug trening</button>`;
+                html += `<button class="btn btn-primary" onclick="closeModal(); setTimeout(() => showAddTrainingForm('${dateStr}'), 100);">➕ Dodaj ${events && events.length > 0 ? 'Dodaten' : 'Nov'} Trening</button>`;
                 html += '</div>';
             }
 
