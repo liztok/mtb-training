@@ -882,7 +882,10 @@
 
             <!-- Routes View -->
             <div id="routes" class="view">
-                <h2 style="color: var(--primary); margin-bottom: 20px;">🗺️ Kolesarske Poti</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: var(--primary); margin: 0;">🗺️ Kolesarske Poti</h2>
+                    <button class="btn btn-primary" onclick="compareRoutes([1,2,3,4])">📊 Primerjaj Lokalne Poti</button>
+                </div>
                 <div id="routesGrid" class="routes-grid"></div>
             </div>
 
@@ -1129,13 +1132,13 @@
                 intensity: 'C2-C3, intervali C4',
                 type: 'Asfalt/makadam mix',
                 waypoints: [
-                    [45.9368, 14.1245],  // Rovte start
+                    [45.9907535, 14.1304175],  // Zavratec 3 - Home
                     [45.9280, 14.0980],  // Towards Logatec
                     [45.9156, 14.0783],  // Logatec area
                     [45.9100, 14.1100],  // Return route
-                    [45.9368, 14.1245]   // Back to Rovte
+                    [45.9907535, 14.1304175]   // Back home
                 ],
-                description: 'Glavni testni krog za merjenje napredka'
+                description: 'Glavni testni krog za merjenje napredka - Začetek doma'
             },
             2: {
                 name: 'Žibrše - Hotedršica Circuit',
@@ -1144,13 +1147,13 @@
                 intensity: 'C2-C3',
                 type: 'Mix asfalt/gozdne ceste',
                 waypoints: [
-                    [45.9368, 14.1245],  // Rovte/Zavrtec start
+                    [45.9907535, 14.1304175],  // Zavratec 3 - Home
                     [45.9500, 14.1400],  // Žibrše area
                     [45.9600, 14.1200],  // Hotedršica
                     [45.9450, 14.1100],  // Loop back
-                    [45.9368, 14.1245]   // Return
+                    [45.9907535, 14.1304175]   // Back home
                 ],
-                description: 'Tehnično zahtevna pot z vzponi'
+                description: 'Tehnično zahtevna pot z vzponi - Začetek doma'
             },
             3: {
                 name: 'Rovte MTB Trails',
@@ -1159,12 +1162,12 @@
                 intensity: 'C2-C3 + tehnika',
                 type: 'Single track, gozdne ceste',
                 waypoints: [
-                    [45.9368, 14.1245],  // Start
+                    [45.9907535, 14.1304175],  // Zavratec 3 - Home
                     [45.9300, 14.1350],  // Trail section
                     [45.9400, 14.1450],  // Loop
-                    [45.9368, 14.1245]   // Return
+                    [45.9907535, 14.1304175]   // Back home
                 ],
-                description: 'Fokus na tehnične veščine'
+                description: 'Fokus na tehnične veščine - Začetek doma'
             },
             4: {
                 name: 'Zavrtec - Intervalni krog',
@@ -1173,12 +1176,12 @@
                 intensity: 'C2 + intervali C4-C5',
                 type: 'Mix terrain',
                 waypoints: [
-                    [45.9368, 14.1245],  // Zavrtec start
+                    [45.9907535, 14.1304175],  // Zavratec 3 - Home
                     [45.9250, 14.1350],  // Climb section
                     [45.9200, 14.1200],  // Interval section
-                    [45.9368, 14.1245]   // Return
+                    [45.9907535, 14.1304175]   // Back home
                 ],
-                description: 'Strukturirani intervali za moč'
+                description: 'Strukturirani intervali za moč - Začetek doma'
             },
             5: {
                 name: 'Šmarna Gora Loop',
@@ -1356,11 +1359,30 @@
         // ========================================
         // LINK GENERATORS
         // ========================================
+        function getRouteWaypoints(routeId) {
+            const route = ROUTES_DATA[routeId];
+            if (!route || !route.waypoints) return [];
+
+            let waypoints = [...route.waypoints];
+
+            // For local routes (1-4), use user's home address if available
+            const isLocalRoute = routeId >= 1 && routeId <= 4;
+            if (isLocalRoute && userProfile && userProfile.home_lat && userProfile.home_lon) {
+                const homeCoords = [userProfile.home_lat, userProfile.home_lon];
+                // Replace first waypoint (start) with home
+                waypoints[0] = homeCoords;
+                // Replace last waypoint (return) with home
+                waypoints[waypoints.length - 1] = homeCoords;
+            }
+
+            return waypoints;
+        }
+
         function getRouteLink(routeId, appType = 'komoot') {
             const route = ROUTES_DATA[routeId];
             if (!route) return '#';
 
-            const waypoints = route.waypoints || [];
+            const waypoints = getRouteWaypoints(routeId);
 
             // If route has a custom Komoot URL (user-created), use it
             if (route.komootUrl && appType === 'komoot') {
@@ -1456,9 +1478,11 @@
         // ========================================
         function generateGPX(routeId) {
             const route = ROUTES_DATA[routeId];
-            if (!route || !route.waypoints) return null;
+            if (!route) return null;
 
-            const waypoints = route.waypoints;
+            const waypoints = getRouteWaypoints(routeId);
+            if (!waypoints || waypoints.length === 0) return null;
+
             const name = route.name;
             const description = route.description;
 
@@ -1624,7 +1648,7 @@
         function createKomootAutoImportPage(routeId) {
             const route = ROUTES_DATA[routeId];
             const gpxContent = generateGPX(routeId);
-            const waypoints = route.waypoints;
+            const waypoints = getRouteWaypoints(routeId);
 
             // Build HTML safely without nested template literals
             const htmlParts = [];
@@ -1771,12 +1795,17 @@
 
                 if (error) throw error;
 
+                // Geocode location
+                const coords = await geocodeLocation(location);
+
                 // Create profile
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .update({
                         full_name: fullName,
                         location: location,
+                        home_lat: coords.lat,
+                        home_lon: coords.lon,
                         cycling_app: cyclingApp,
                         indoor_app: indoorApp
                     })
@@ -1895,6 +1924,176 @@
             renderCalendar();
         }
 
+        function showAddTrainingForm(dateStr) {
+            const date = new Date(dateStr);
+            const dateFormatted = date.toLocaleDateString('sl-SI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            document.getElementById('modalTitle').textContent = 'Dodaj Trening';
+            document.getElementById('modalDate').textContent = dateFormatted;
+
+            const html = `
+                <div class="training-info">
+                    <h3>➕ Ustvari Nov Trening</h3>
+                    <form onsubmit="saveCustomTraining(event, '${dateStr}')">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Tip treninga *</label>
+                                <select name="type" id="customType" required onchange="updateCustomForm()">
+                                    <option value="">Izberi...</option>
+                                    <option value="bike">🚴 Kolo - Zunaj</option>
+                                    <option value="trainer">🏠 Kolo - Indoor</option>
+                                    <option value="gym">💪 GYM</option>
+                                    <option value="karate">🥋 Karate</option>
+                                    <option value="rest">😌 Počitek</option>
+                                    <option value="other">📝 Drugo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ime treninga *</label>
+                                <input type="text" name="name" required placeholder="npr. Lahka vožnja">
+                            </div>
+                            <div class="form-group">
+                                <label>Trajanje *</label>
+                                <input type="text" name="duration" required placeholder="npr. 60-90 min">
+                            </div>
+                            <div class="form-group">
+                                <label>Intenzivnost</label>
+                                <input type="text" name="intensity" placeholder="npr. C1-C2">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Opis</label>
+                            <textarea name="description" placeholder="Podrobnosti o treningu..." rows="3"></textarea>
+                        </div>
+
+                        <div id="customRouteSection" style="display: none;">
+                            <div class="form-group">
+                                <label>Predlagana pot (opcijsko)</label>
+                                <select name="route">
+                                    <option value="">Brez poti</option>
+                                    <option value="1">Rovte - Logatec Loop</option>
+                                    <option value="2">Žibrše - Hotedršica Circuit</option>
+                                    <option value="3">Rovte MTB Trails</option>
+                                    <option value="4">Zavrtec - Intervalni krog</option>
+                                    <option value="5">Šmarna Gora Loop</option>
+                                    <option value="6">Polhograjski Dolomiti</option>
+                                    <option value="7">Idrija Loop</option>
+                                    <option value="8">Postojnska Vrata</option>
+                                    <option value="9">Ljubljansko Barje Loop</option>
+                                    <option value="10">Bevke-Borovnica-Vrhnika</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="customWorkoutSection" style="display: none;">
+                            <div class="form-group">
+                                <label>Predlagan workout (opcijsko)</label>
+                                <select name="workout">
+                                    <option value="">Brez workouts</option>
+                                    <option value="1">Flat Route - Recovery Ride</option>
+                                    <option value="2">Dubai Arena Loop</option>
+                                    <option value="3">Desert Loop</option>
+                                    <option value="4">France Route - Gentle Hills</option>
+                                    <option value="5">Yorkshire Loop</option>
+                                    <option value="6">Threshold Builder</option>
+                                    <option value="7">Sweet Spot Training</option>
+                                    <option value="8">Tempo Intervals 45</option>
+                                    <option value="9">Pyramid Workout</option>
+                                    <option value="10">Makuri Islands Tour</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Intervali (opcijsko)</label>
+                            <input type="text" name="intervals" placeholder="npr. 4x (3 min C4 + 3 min C2)">
+                        </div>
+
+                        <button type="submit" class="btn btn-success">💾 Dodaj Trening</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()" style="margin-left: 10px;">Prekliči</button>
+                    </form>
+                </div>
+
+                <script>
+                    function updateCustomForm() {
+                        const type = document.getElementById('customType').value;
+                        const routeSection = document.getElementById('customRouteSection');
+                        const workoutSection = document.getElementById('customWorkoutSection');
+
+                        if (type === 'bike') {
+                            routeSection.style.display = 'block';
+                            workoutSection.style.display = 'none';
+                        } else if (type === 'trainer') {
+                            routeSection.style.display = 'none';
+                            workoutSection.style.display = 'block';
+                        } else {
+                            routeSection.style.display = 'none';
+                            workoutSection.style.display = 'none';
+                        }
+                    }
+                <\/script>
+            `;
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('trainingModal').classList.add('active');
+        }
+
+        async function saveCustomTraining(event, dateStr) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const customEvent = {
+                user_id: currentUser.id,
+                date: dateStr,
+                action: 'add',
+                type: formData.get('type'),
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                duration: formData.get('duration'),
+                intensity: formData.get('intensity') || null,
+                route: formData.get('route') ? parseInt(formData.get('route')) : null,
+                workout: formData.get('workout') ? parseInt(formData.get('workout')) : null,
+                intervals: formData.get('intervals') || null
+            };
+
+            const { error } = await supabase
+                .from('custom_training_events')
+                .upsert(customEvent, {
+                    onConflict: 'user_id,date,action'
+                });
+
+            if (error) {
+                if (error.code === '42P01') {
+                    alert('Napaka: Tabela custom_training_events ne obstaja!\n\nPoženi ta SQL v Supabase:\n\n' +
+                          'CREATE TABLE custom_training_events (\n' +
+                          '  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),\n' +
+                          '  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,\n' +
+                          '  date DATE NOT NULL,\n' +
+                          '  action TEXT NOT NULL CHECK (action IN (\'add\', \'delete\')),\n' +
+                          '  type TEXT,\n' +
+                          '  name TEXT,\n' +
+                          '  description TEXT,\n' +
+                          '  duration TEXT,\n' +
+                          '  intensity TEXT,\n' +
+                          '  route INTEGER,\n' +
+                          '  workout INTEGER,\n' +
+                          '  intervals TEXT,\n' +
+                          '  created_at TIMESTAMP DEFAULT NOW(),\n' +
+                          '  UNIQUE(user_id, date, action)\n' +
+                          ');');
+                } else {
+                    alert('Napaka pri shranjevanju: ' + error.message);
+                }
+                return;
+            }
+
+            alert('✅ Trening uspešno dodan!');
+            await loadCustomEvents();
+            closeModal();
+            renderCalendar();
+        }
+
         function updateUserInfo() {
             if (userProfile) {
                 document.getElementById('userName').textContent = userProfile.full_name || userProfile.email;
@@ -1996,8 +2195,9 @@
 
             const hasBaseTraining = TRAINING_PLAN[dateStr] !== undefined;
 
+            // If no training and no log, show option to add custom training
             if (!training && !log) {
-                alert('Ni načrtovanega treninga za ta dan.');
+                showAddTrainingForm(dateStr);
                 return;
             }
 
@@ -2076,6 +2276,13 @@
             if (hasBaseTraining && training) {
                 html += '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">';
                 html += `<button class="btn btn-danger" onclick="deleteTrainingDay('${dateStr}')">🗑️ Izbriši ta trening iz urnika</button>`;
+                html += '</div>';
+            }
+
+            // Add button to replace with custom training
+            if (training) {
+                html += '<div style="margin-top: 15px;">';
+                html += `<button class="btn btn-primary" onclick="closeModal(); setTimeout(() => showAddTrainingForm('${dateStr}'), 100);">✏️ Spremeni v drug trening</button>`;
                 html += '</div>';
             }
 
@@ -2223,6 +2430,262 @@
         }
 
         // ========================================
+        // ROUTE WAYPOINT EDITOR
+        // ========================================
+        let editingRouteWaypoints = [];
+        let editingRouteId = null;
+
+        function editRouteWaypoints(routeId) {
+            const route = ROUTES_DATA[routeId];
+            editingRouteId = routeId;
+            editingRouteWaypoints = [...getRouteWaypoints(routeId)];
+
+            document.getElementById('modalTitle').textContent = `Uredi Pot: ${route.name}`;
+            document.getElementById('modalDate').textContent = `${editingRouteWaypoints.length} točk`;
+
+            renderWaypointEditor();
+        }
+
+        function renderWaypointEditor() {
+            const route = ROUTES_DATA[editingRouteId];
+
+            let html = '<div class="training-info">';
+            html += '<h3>📍 Urejanje Točk Poti</h3>';
+            html += '<p style="margin-bottom: 15px; color: #666;">Uredi koordinate točk ali dodaj/odstrani točke.</p>';
+
+            html += '<div id="waypointsList">';
+            editingRouteWaypoints.forEach((wp, index) => {
+                html += `<div class="waypoint-row" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">`;
+                html += `<span style="font-weight: bold; min-width: 30px;">${index + 1}.</span>`;
+                html += `<input type="number" id="lat_${index}" value="${wp[0]}" step="0.00001" style="flex: 1;" placeholder="Lat">`;
+                html += `<input type="number" id="lon_${index}" value="${wp[1]}" step="0.00001" style="flex: 1;" placeholder="Lon">`;
+                html += `<button onclick="moveWaypointUp(${index})" class="btn btn-secondary" style="padding: 5px 10px;" ${index === 0 ? 'disabled' : ''}>⬆️</button>`;
+                html += `<button onclick="moveWaypointDown(${index})" class="btn btn-secondary" style="padding: 5px 10px;" ${index === editingRouteWaypoints.length - 1 ? 'disabled' : ''}>⬇️</button>`;
+                html += `<button onclick="removeWaypoint(${index})" class="btn btn-danger" style="padding: 5px 10px;">🗑️</button>`;
+                html += `</div>`;
+            });
+            html += '</div>';
+
+            html += '<div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">';
+            html += `<button onclick="addWaypoint()" class="btn btn-success">➕ Dodaj Točko</button>`;
+            html += `<button onclick="previewEditedRoute()" class="btn btn-primary">🗺️ Predogled v Google Maps</button>`;
+            html += `<button onclick="saveEditedRoute()" class="btn btn-primary">💾 Izvozi GPX</button>`;
+            html += `<button onclick="closeModal()" class="btn btn-secondary">❌ Prekliči</button>`;
+            html += '</div>';
+
+            html += '<div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">';
+            html += '<h4>💡 Nasveti:</h4>';
+            html += '<ul style="margin-left: 20px; line-height: 1.8;">';
+            html += '<li>Koordinate lahko dobiš iz Google Maps (desni klik → "Kaj je tukaj?")</li>';
+            html += '<li>Dodaj vmesne točke za natančnejšo pot</li>';
+            html += '<li>Uporabi "Predogled" za preverjanje poti</li>';
+            html += '<li>Izvozi GPX in uvozi v Komoot/Strava/Garmin</li>';
+            html += '</ul>';
+            html += '</div>';
+
+            html += '</div>';
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('trainingModal').classList.add('active');
+        }
+
+        function updateWaypoints() {
+            const updated = [];
+            for (let i = 0; i < editingRouteWaypoints.length; i++) {
+                const latInput = document.getElementById(`lat_${i}`);
+                const lonInput = document.getElementById(`lon_${i}`);
+                if (latInput && lonInput) {
+                    updated.push([parseFloat(latInput.value), parseFloat(lonInput.value)]);
+                }
+            }
+            editingRouteWaypoints = updated;
+        }
+
+        function addWaypoint() {
+            updateWaypoints();
+            // Add new waypoint after the last one (or in middle if you want)
+            const lastWp = editingRouteWaypoints[editingRouteWaypoints.length - 1];
+            editingRouteWaypoints.push([lastWp[0] + 0.01, lastWp[1] + 0.01]);
+            renderWaypointEditor();
+        }
+
+        function removeWaypoint(index) {
+            if (editingRouteWaypoints.length <= 2) {
+                alert('Pot mora imeti vsaj 2 točki');
+                return;
+            }
+            updateWaypoints();
+            editingRouteWaypoints.splice(index, 1);
+            renderWaypointEditor();
+        }
+
+        function moveWaypointUp(index) {
+            if (index === 0) return;
+            updateWaypoints();
+            [editingRouteWaypoints[index], editingRouteWaypoints[index - 1]] =
+            [editingRouteWaypoints[index - 1], editingRouteWaypoints[index]];
+            renderWaypointEditor();
+        }
+
+        function moveWaypointDown(index) {
+            if (index === editingRouteWaypoints.length - 1) return;
+            updateWaypoints();
+            [editingRouteWaypoints[index], editingRouteWaypoints[index + 1]] =
+            [editingRouteWaypoints[index + 1], editingRouteWaypoints[index]];
+            renderWaypointEditor();
+        }
+
+        function previewEditedRoute() {
+            updateWaypoints();
+            const waypointPath = editingRouteWaypoints.map(wp => `${wp[0]},${wp[1]}`).join('/');
+            const googleMapsUrl = `https://www.google.com/maps/dir/${waypointPath}`;
+            window.open(googleMapsUrl, '_blank');
+        }
+
+        function saveEditedRoute() {
+            updateWaypoints();
+
+            const route = ROUTES_DATA[editingRouteId];
+
+            // Generate GPX with edited waypoints
+            const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MTB Training Tracker - Custom Route" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${route.name} (Edited)</name>
+    <desc>${route.description} - Custom waypoints</desc>
+    <author>
+      <name>MTB Training Tracker</name>
+    </author>
+  </metadata>
+  <trk>
+    <name>${route.name} (Edited)</name>
+    <desc>${route.description}</desc>
+    <type>Cycling</type>
+    <trkseg>`;
+
+            let trackpoints = '';
+            editingRouteWaypoints.forEach((wp, index) => {
+                trackpoints += `
+      <trkpt lat="${wp[0]}" lon="${wp[1]}">
+        <name>Waypoint ${index + 1}</name>
+      </trkpt>`;
+            });
+
+            const gpxFooter = `
+    </trkseg>
+  </trk>
+</gpx>`;
+
+            const gpxContent = gpxHeader + trackpoints + gpxFooter;
+
+            // Download GPX
+            const filename = `${route.name.replace(/\s+/g, '_')}_Edited.gpx`;
+            const blob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert(`✅ GPX datoteka izvožena: ${filename}\n\nUvozi jo v Komoot, Strava ali Garmin!`);
+        }
+
+        // ========================================
+        // ROUTE COMPARISON
+        // ========================================
+        function compareRoutes(routeIds) {
+            if (!routeIds || routeIds.length < 2) {
+                alert('Izberi vsaj 2 poti za primerjavo');
+                return;
+            }
+
+            document.getElementById('modalTitle').textContent = 'Primerjava Poti';
+            document.getElementById('modalDate').textContent = `${routeIds.length} poti`;
+
+            let html = '<div class="training-info">';
+            html += '<h3>📊 Primerjava Poti</h3>';
+            html += '<div style="overflow-x: auto;">';
+            html += '<table class="log-table" style="min-width: 600px;">';
+            html += '<thead><tr>';
+            html += '<th style="min-width: 150px;">Ime Poti</th>';
+            html += '<th>Razdalja</th>';
+            html += '<th>Višina</th>';
+            html += '<th>Intenzivnost</th>';
+            html += '<th>Tip Terena</th>';
+            html += '<th>Začetek</th>';
+            html += '</tr></thead><tbody>';
+
+            routeIds.forEach(routeId => {
+                const route = ROUTES_DATA[routeId];
+                const waypoints = getRouteWaypoints(routeId);
+                const isFromHome = waypoints.length > 0 &&
+                    userProfile && userProfile.home_lat &&
+                    Math.abs(waypoints[0][0] - userProfile.home_lat) < 0.01;
+
+                html += '<tr>';
+                html += `<td><strong>${route.name}</strong><br><small>${route.description}</small></td>`;
+                html += `<td>${route.distance}</td>`;
+                html += `<td>${route.elevation}</td>`;
+                html += `<td><span class="intensity-badge intensity-${route.intensity.toLowerCase().replace(/[^a-z0-9]/g, '')}">${route.intensity}</span></td>`;
+                html += `<td>${route.type}</td>`;
+                html += `<td>${isFromHome ? '🏠 Doma' : '📍 Lokacija'}</td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            html += '</div>';
+
+            html += '<div style="margin-top: 20px;">';
+            html += '<h4>Izberi Pot:</h4>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
+
+            routeIds.forEach(routeId => {
+                const route = ROUTES_DATA[routeId];
+                html += `<button class="btn btn-primary" onclick="closeModal(); openRouteDetails(${routeId})">`;
+                html += `${route.name}</button>`;
+            });
+
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('trainingModal').classList.add('active');
+        }
+
+        function openRouteDetails(routeId) {
+            const route = ROUTES_DATA[routeId];
+            const links = getRouteLink(routeId, userProfile ? userProfile.cycling_app : 'komoot');
+            const waypoints = getRouteWaypoints(routeId);
+
+            document.getElementById('modalTitle').textContent = route.name;
+            document.getElementById('modalDate').textContent = `${route.distance} | ${route.elevation}`;
+
+            let html = '<div class="training-info">';
+            html += '<h3>🗺️ Podrobnosti Poti</h3>';
+            html += `<div class="info-row"><span class="info-label">Razdalja:</span><span class="info-value">${route.distance}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Višina:</span><span class="info-value">${route.elevation}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Intenzivnost:</span><span class="info-value">${route.intensity}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Tip:</span><span class="info-value">${route.type}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Opis:</span><span class="info-value">${route.description}</span></div>`;
+            html += `<div class="info-row"><span class="info-label">Število točk:</span><span class="info-value">${waypoints.length}</span></div>`;
+            html += '</div>';
+
+            html += '<div style="margin-top: 20px;">';
+            html += `<a href="${links.app}" class="route-link">📍 Odpri v ${userProfile ? userProfile.cycling_app.toUpperCase() : 'KOMOOT'}</a>`;
+            html += `<a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web</a>`;
+            html += `<button onclick="downloadGPX(${routeId})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 GPX</button>`;
+            html += `<button onclick="quickKomootImport(${routeId})" class="route-link" style="background: #ff6900; border: none; cursor: pointer;">🚀 Komoot</button>`;
+            html += '</div>';
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('trainingModal').classList.add('active');
+        }
+
+        // ========================================
         // ROUTES & WORKOUTS RENDERING
         // ========================================
         function renderRoutes() {
@@ -2255,6 +2718,7 @@
                         <a href="${links.web}" target="_blank" class="route-link" style="background: #6c757d;">🌐 Web</a>
                         <button onclick="downloadGPX(${id})" class="route-link" style="background: #28a745; border: none; cursor: pointer;">📥 GPX</button>
                         <button onclick="quickKomootImport(${id})" class="route-link" style="background: #ff6900; border: none; cursor: pointer;">🚀 Komoot Import</button>
+                        <button onclick="editRouteWaypoints(${id})" class="route-link" style="background: #17a2b8; border: none; cursor: pointer;">✏️ Uredi Pot</button>
                     </div>
                 `;
             }
@@ -2453,17 +2917,47 @@
             document.getElementById('profileContent').innerHTML = html;
         }
 
+        async function geocodeLocation(location) {
+            if (!location) return { lat: null, lon: null };
+
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)},Slovenia&format=json&limit=1`
+                );
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lon: parseFloat(data[0].lon)
+                    };
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+
+            return { lat: null, lon: null };
+        }
+
         async function updateProfile(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
 
+            const location = formData.get('location');
             const updates = {
                 full_name: formData.get('fullName'),
-                location: formData.get('location'),
+                location: location,
                 cycling_app: formData.get('cyclingApp'),
                 indoor_app: formData.get('indoorApp')
             };
+
+            // Geocode location if it changed
+            if (location && location !== userProfile.location) {
+                const coords = await geocodeLocation(location);
+                updates.home_lat = coords.lat;
+                updates.home_lon = coords.lon;
+            }
 
             const { error } = await supabase
                 .from('profiles')
